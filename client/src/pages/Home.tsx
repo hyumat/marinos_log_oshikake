@@ -16,11 +16,11 @@ export default function Home() {
           {/* Header */}
           <div className="mb-12 text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Marinos Away Log
+              マリノス観戦ログ
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Track your Yokohama F. Marinos match attendance and viewing history.
-              Always get the latest match information with accurate web scraping.
+              横浜F・マリノスの試合情報を管理し、観戦記録を残しましょう。
+              正確なスクレイピングで常に最新の試合情報を提供します。
             </p>
           </div>
 
@@ -29,11 +29,11 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Calendar className="h-8 w-8 text-accent mb-2" />
-                <CardTitle>Auto Match Updates</CardTitle>
+                <CardTitle>試合情報の自動取得</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Automatically fetch the latest match information from the official J.League website.
+                  Jリーグ公式サイトから最新の試合情報を自動で取得します。
                 </p>
               </CardContent>
             </Card>
@@ -41,11 +41,11 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <BarChart3 className="h-8 w-8 text-accent mb-2" />
-                <CardTitle>Viewing Statistics</CardTitle>
+                <CardTitle>観戦統計</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Track win/loss records, total matches attended, and expenses.
+                  勝敗記録、総観戦数、費用管理など、詳細な統計を表示します。
                 </p>
               </CardContent>
             </Card>
@@ -53,11 +53,11 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <TrendingUp className="h-8 w-8 text-accent mb-2" />
-                <CardTitle>Detailed Records</CardTitle>
+                <CardTitle>詳細な記録管理</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Record notes, ticket costs, stadiums, and other details for each match.
+                  各試合のメモ、チケット代金、スタジアムなど細かい情報を記録できます。
                 </p>
               </CardContent>
             </Card>
@@ -65,11 +65,11 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Users className="h-8 w-8 text-accent mb-2" />
-                <CardTitle>Multi-Device Sync</CardTitle>
+                <CardTitle>マルチデバイス対応</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Access from smartphone, tablet, or PC. Data syncs automatically across devices.
+                  スマートフォン、タブレット、PCからアクセスでき、データは自動同期されます。
                 </p>
               </CardContent>
             </Card>
@@ -79,7 +79,7 @@ export default function Home() {
           <div className="text-center">
             <a href={getLoginUrl()}>
               <Button size="lg" className="text-lg px-8 py-6">
-                Get Started
+                ログインして始める
               </Button>
             </a>
           </div>
@@ -94,33 +94,33 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user?.name}
+            おかえりなさい、{user?.name}さん
           </h1>
           <p className="text-muted-foreground">
-            Manage your Marinos match information
+            マリノスの試合情報を管理しましょう
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Match Log</CardTitle>
-              <CardDescription>Manage match information</CardDescription>
+              <CardTitle>マッチログ</CardTitle>
+              <CardDescription>試合情報を管理</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
                 onClick={() => navigate('/matches')}
                 className="w-full"
               >
-                View Matches
+                マッチログを見る
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Statistics</CardTitle>
-              <CardDescription>View statistics</CardDescription>
+              <CardTitle>観戦統計</CardTitle>
+              <CardDescription>統計情報を表示</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
@@ -128,15 +128,15 @@ export default function Home() {
                 variant="outline"
                 className="w-full"
               >
-                View Stats
+                統計を見る
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>User settings</CardDescription>
+              <CardTitle>プロフィール</CardTitle>
+              <CardDescription>ユーザー設定</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
@@ -144,7 +144,7 @@ export default function Home() {
                 variant="outline"
                 className="w-full"
               >
-                Profile
+                プロフィール
               </Button>
             </CardContent>
           </Card>
