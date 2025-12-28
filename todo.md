@@ -116,3 +116,12 @@
 - [x] 試合結果・会場情報の抽出
 - [x] 複数ソースの統合
 - [x] テスト実装・実行 (11 tests added, 70 total tests passed)
+
+## Phase 15: Accurate Scraping Implementation - 3 Sources Integration
+- [x] Jリーグ公式サイト（https://www.jleague.jp/match/search/）から正確な試合情報を取得
+- [x] 横浜F・マリノス公式サイトから試合日程・結果を取得
+- [x] Football-Lab（https://www.football-lab.jp/y-fm）から詳細情報を取得
+- [x] 3つのソースを統合し、正確な試合データを構築
+- [x] Puppeteerの導入検討（JavaScriptレンダリング対応）
+- [ ] 実際の試合情報でテストデータを更新
+- [ ] スクレイピング機能の統合テスト実装

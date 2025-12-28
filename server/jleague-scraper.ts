@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 
-const JLEAGUE_SEARCH_URL = 'https://www.jleague.jp/match/search/?category%5B%5D=100yj1&category%5B%5D=j2j3&category%5B%5D=j1&category%5B%5D=leaguecup&category%5B%5D=j2&category%5B%5D=j3&category%5B%5D=playoff&category%5B%5D=j2playoff&category%5B%5D=J3jflplayoff&category%5B%5D=emperor&category%5B%5D=acle&category%5B%5D=acl2&category%5B%5D=acl&category%5B%5D=fcwc&category%5B%5D=supercup&category%5B%5D=asiachallenge&category%5B%5D=jwc&club%5B%5D=yokohamafm&year=2025';
+// Jリーグ公式サイトの検索URL - 2026年のマリノス試合情報
+const JLEAGUE_SEARCH_URL = 'https://www.jleague.jp/match/search/?club[]=yokohamafm&year=2026';
 
 interface JLeagueMatch {
   date: string; // ISO format: YYYY-MM-DD
@@ -48,7 +49,7 @@ async function fetchWithRetry(url: string, maxRetries = 3): Promise<string | nul
 
 function parseJapaneseDateToISO(dateStr: string, year: number): string | null {
   try {
-    // Match patterns like "2月12日" or "2.12"
+    // Match patterns like "2月6日" or "2.6"
     const monthDayMatch = dateStr.match(/(\d{1,2})月(\d{1,2})日|(\d{1,2})\.(\d{1,2})/);
     if (!monthDayMatch) return null;
 
@@ -56,11 +57,11 @@ function parseJapaneseDateToISO(dateStr: string, year: number): string | null {
     let day: number;
 
     if (monthDayMatch[1]) {
-      // "2月12日" format
+      // "2月6日" format
       month = parseInt(monthDayMatch[1], 10);
       day = parseInt(monthDayMatch[2], 10);
     } else {
-      // "2.12" format
+      // "2.6" format
       month = parseInt(monthDayMatch[3], 10);
       day = parseInt(monthDayMatch[4], 10);
     }
@@ -124,6 +125,210 @@ function extractCompetition(text: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Parse matches from HTML content
+ */
+function parseMatchesFromHTML(html: string): JLeagueMatch[] {
+  const matches: JLeagueMatch[] = [];
+  const $ = cheerio.load(html);
+  const year = 2026;
+
+  // Jリーグ公式サイトの試合情報は複数の形式で表示される可能性がある
+  // 1. テーブル形式
+  // 2. カード形式
+  // 3. リスト形式
+
+  // 試合情報を含むセレクタを複数試す
+  const selectors = [
+    'a[href*="/match/"]',
+    '.match-card',
+    '.match-row',
+    'tr[data-match-id]',
+    '[data-match]'
+  ];
+
+  let matchElements = $();
+  for (const selector of selectors) {
+    matchElements = $(selector);
+    if (matchElements.length > 0) {
+      console.log(`[J-League Scraper] Found ${matchElements.length} matches using selector: ${selector}`);
+      break;
+    }
+  }
+
+  // セレクタでマッチが見つからない場合、テキストベースで解析
+  if (matchElements.length === 0) {
+    console.log('[J-League Scraper] No matches found with selectors, using text-based parsing');
+    return parseMatchesFromText($('body').text(), year);
+  }
+
+  matchElements.each((index: number, element: any) => {
+    try {
+      const $el = $(element);
+      const text = $el.text();
+
+      if (!text) return;
+
+      // 日付を抽出
+      const dateMatch = text.match(/(\d{1,2})月(\d{1,2})日/);
+      if (!dateMatch) return;
+
+      const dateStr = `${dateMatch[1]}月${dateMatch[2]}日`;
+      const date = parseJapaneseDateToISO(dateStr, year);
+      if (!date) return;
+
+      // 試合結果か予定か判定
+      const isResult = text.includes('試合終了');
+
+      // スコアを抽出
+      const scoreMatch = text.match(/(\d+)\s*(?:試合終了|予定)\s*(\d+)/);
+      let homeScore: number | undefined;
+      let awayScore: number | undefined;
+
+      if (scoreMatch && isResult) {
+        homeScore = parseInt(scoreMatch[1], 10);
+        awayScore = parseInt(scoreMatch[2], 10);
+      }
+
+      // チーム名を抽出
+      const teamParts = text.split(/\d+\s*(?:試合終了|予定)\s*\d+/);
+      if (teamParts.length < 2) return;
+
+      const homeTeamText = teamParts[0].trim();
+      const awayTeamText = teamParts[1].trim();
+
+      const homeTeam = extractTeamName(homeTeamText);
+      const awayTeam = extractTeamName(awayTeamText);
+
+      if (!homeTeam || !awayTeam) return;
+
+      // マリノスがホームかアウェイか判定
+      const marinosSide = homeTeam === '横浜FM' ? 'home' : awayTeam === '横浜FM' ? 'away' : undefined;
+      if (!marinosSide) return;
+
+      const opponent = marinosSide === 'home' ? awayTeam : homeTeam;
+
+      // スタジアムを抽出
+      const stadium = extractStadium(text);
+
+      // 大会を抽出
+      const competition = extractCompetition(text);
+
+      // キックオフ時刻を抽出
+      const kickoffMatch = text.match(/(\d{1,2}):(\d{2})/);
+      const kickoff = kickoffMatch ? `${kickoffMatch[1]}:${kickoffMatch[2]}` : undefined;
+
+      const match: JLeagueMatch = {
+        date,
+        kickoff,
+        competition,
+        homeTeam,
+        awayTeam,
+        opponent,
+        stadium,
+        marinosSide,
+        homeScore,
+        awayScore,
+        isResult,
+        sourceUrl: JLEAGUE_SEARCH_URL,
+      };
+
+      matches.push(match);
+    } catch (error) {
+      console.log(`[J-League Scraper] Error parsing match ${index}:`, error);
+    }
+  });
+
+  return matches;
+}
+
+/**
+ * Parse matches from plain text (fallback method)
+ */
+function parseMatchesFromText(text: string, year: number): JLeagueMatch[] {
+  const matches: JLeagueMatch[] = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // 日付パターンを検出
+    const dateMatch = line.match(/(\d{1,2})月(\d{1,2})日/);
+    if (!dateMatch) {
+      i++;
+      continue;
+    }
+
+    const dateStr = `${dateMatch[1]}月${dateMatch[2]}日`;
+    const date = parseJapaneseDateToISO(dateStr, year);
+    if (!date) {
+      i++;
+      continue;
+    }
+
+    // 試合結果か予定か判定
+    const isResult = line.includes('試合終了');
+
+    // スコアを抽出
+    const scoreMatch = line.match(/(\d+)\s*(?:試合終了|予定)\s*(\d+)/);
+    let homeScore: number | undefined;
+    let awayScore: number | undefined;
+
+    if (scoreMatch && isResult) {
+      homeScore = parseInt(scoreMatch[1], 10);
+      awayScore = parseInt(scoreMatch[2], 10);
+    }
+
+    // チーム名を抽出
+    const teamParts = line.split(/\d+\s*(?:試合終了|予定)\s*\d+/);
+    if (teamParts.length < 2) {
+      i++;
+      continue;
+    }
+
+    const homeTeam = extractTeamName(teamParts[0]);
+    const awayTeam = extractTeamName(teamParts[1]);
+
+    if (!homeTeam || !awayTeam) {
+      i++;
+      continue;
+    }
+
+    const marinosSide = homeTeam === '横浜FM' ? 'home' : awayTeam === '横浜FM' ? 'away' : undefined;
+    if (!marinosSide) {
+      i++;
+      continue;
+    }
+
+    const opponent = marinosSide === 'home' ? awayTeam : homeTeam;
+    const stadium = extractStadium(line);
+    const competition = extractCompetition(line);
+    const kickoffMatch = line.match(/(\d{1,2}):(\d{2})/);
+    const kickoff = kickoffMatch ? `${kickoffMatch[1]}:${kickoffMatch[2]}` : undefined;
+
+    const match: JLeagueMatch = {
+      date,
+      kickoff,
+      competition,
+      homeTeam,
+      awayTeam,
+      opponent,
+      stadium,
+      marinosSide,
+      homeScore,
+      awayScore,
+      isResult,
+      sourceUrl: JLEAGUE_SEARCH_URL,
+    };
+
+    matches.push(match);
+    i++;
+  }
+
+  return matches;
+}
+
 export async function scrapeJLeagueMatches(): Promise<{
   matches: JLeagueMatch[];
   errors: Array<{ url: string; message: string; timestamp: Date }>;
@@ -145,91 +350,8 @@ export async function scrapeJLeagueMatches(): Promise<{
       return { matches, errors, stats: { total: 0, success: 0, failed: 1 } };
     }
 
-    const $ = cheerio.load(html);
-    const currentYear = new Date().getFullYear();
-
-    // Find all match cards - they contain "試合終了" or "予定"
-    const matchCardElements = $('a').filter((i, el) => {
-      const text = $(el).text();
-      return text.includes('試合終了') || text.includes('予定');
-    });
-
-    console.log(`[J-League Scraper] Found ${matchCardElements.length} match cards`);
-
-    matchCardElements.each((index: number, element: any) => {
-      try {
-        const $card = $(element);
-        const text = $card.text();
-
-        // Extract date - look for "2月12日" or similar patterns
-        const dateMatch = text.match(/(\d{1,2})月(\d{1,2})日/);
-        if (!dateMatch) return;
-
-        const dateStr = `${dateMatch[1]}月${dateMatch[2]}日`;
-        const date = parseJapaneseDateToISO(dateStr, currentYear);
-        if (!date) return;
-
-        // Check if match is finished or scheduled
-        const isResult = text.includes('試合終了');
-
-        // Extract score - pattern: "1 試合終了 0" or "1 予定 0"
-        const scoreMatch = text.match(/(\d+)\s*(?:試合終了|予定)\s*(\d+)/);
-        let homeScore: number | undefined;
-        let awayScore: number | undefined;
-
-        if (scoreMatch && isResult) {
-          homeScore = parseInt(scoreMatch[1], 10);
-          awayScore = parseInt(scoreMatch[2], 10);
-        }
-
-        // Extract teams - split by score pattern
-        const teamParts = text.split(/\d+\s*(?:試合終了|予定)\s*\d+/);
-        if (teamParts.length < 2) return;
-
-        const homeTeamText = teamParts[0].trim();
-        const awayTeamText = teamParts[1].trim();
-
-        const homeTeam = extractTeamName(homeTeamText);
-        const awayTeam = extractTeamName(awayTeamText);
-
-        if (!homeTeam || !awayTeam) return;
-
-        // Determine if Marinos is home or away
-        const marinosSide = homeTeam === '横浜FM' ? 'home' : awayTeam === '横浜FM' ? 'away' : undefined;
-        if (!marinosSide) return;
-
-        const opponent = marinosSide === 'home' ? awayTeam : homeTeam;
-
-        // Extract stadium
-        const stadium = extractStadium(text);
-
-        // Extract competition
-        const competition = extractCompetition(text);
-
-        // Extract kickoff time if available
-        const kickoffMatch = text.match(/(\d{1,2}):(\d{2})/);
-        const kickoff = kickoffMatch ? `${kickoffMatch[1]}:${kickoffMatch[2]}` : undefined;
-
-        const match: JLeagueMatch = {
-          date,
-          kickoff,
-          competition,
-          homeTeam,
-          awayTeam,
-          opponent,
-          stadium,
-          marinosSide,
-          homeScore,
-          awayScore,
-          isResult,
-          sourceUrl: JLEAGUE_SEARCH_URL,
-        };
-
-        matches.push(match);
-      } catch (error) {
-        console.log(`[J-League Scraper] Error parsing match ${index}:`, error);
-      }
-    });
+    const parsedMatches = parseMatchesFromHTML(html);
+    matches.push(...parsedMatches);
 
     console.log(`[J-League Scraper] Extracted ${matches.length} matches`);
   } catch (error) {
