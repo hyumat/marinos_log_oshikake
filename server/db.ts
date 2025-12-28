@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, matches as matchesTable } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -87,6 +87,82 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+// ========== Match Operations ==========
+
+export async function upsertMatches(matchesData: any[]) {
+  if (!matchesData || matchesData.length === 0) return [];
+  
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot upsert matches: database not available');
+    return [];
+  }
+  
+  try {
+    const results = [];
+    for (const match of matchesData) {
+      const result = await db.insert(matchesTable).values({
+        sourceKey: match.sourceKey,
+        source: 'jleague',
+        date: match.date,
+        kickoff: match.kickoff,
+        competition: match.competition,
+        roundLabel: match.roundLabel,
+        roundNumber: match.roundNumber,
+        homeTeam: match.homeTeam,
+        awayTeam: match.awayTeam,
+        opponent: match.opponent,
+        stadium: match.stadium,
+        marinosSide: match.marinosSide,
+        homeScore: match.homeScore,
+        awayScore: match.awayScore,
+        status: match.status,
+        isResult: match.isResult ? 1 : 0,
+        matchUrl: match.matchUrl,
+      }).onDuplicateKeyUpdate({
+        set: {
+          kickoff: match.kickoff,
+          stadium: match.stadium,
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+          status: match.status,
+          isResult: match.isResult ? 1 : 0,
+          updatedAt: new Date(),
+        },
+      });
+      results.push(result);
+    }
+    return results;
+  } catch (error) {
+    console.error('[Database] Failed to upsert matches:', error);
+    throw error;
+  }
+}
+
+export async function getMatches(filters?: { year?: number; competition?: string }) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get matches: database not available');
+    return [];
+  }
+  
+  try {
+    let query: any = db.select().from(matchesTable);
+    
+    if (filters?.year) {
+      query = query.where(sql`YEAR(${matchesTable.date}) = ${filters.year}`);
+    }
+    if (filters?.competition) {
+      query = query.where(eq(matchesTable.competition, filters.competition));
+    }
+    
+    return await query;
+  } catch (error) {
+    console.error('[Database] Failed to get matches:', error);
+    return [];
+  }
 }
 
 // TODO: add feature queries here as your schema grows.

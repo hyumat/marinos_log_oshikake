@@ -25,4 +25,113 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Official match data from J.League (scraped)
+ * This table stores all Marinos matches from the official source
+ */
+export const matches = mysqlTable("matches", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Unique key from official source (e.g., jleague_2025_001) */
+  sourceKey: varchar("sourceKey", { length: 128 }).notNull().unique(),
+  /** Source of data: "jleague" */
+  source: varchar("source", { length: 32 }).default("jleague").notNull(),
+  /** Match date in ISO format (YYYY-MM-DD) */
+  date: varchar("date", { length: 10 }).notNull(),
+  /** Kickoff time (HH:MM) */
+  kickoff: varchar("kickoff", { length: 5 }),
+  /** Competition name (e.g., "J1", "ACL") */
+  competition: varchar("competition", { length: 128 }),
+  /** Round label (e.g., "第1節", "MD1") */
+  roundLabel: varchar("roundLabel", { length: 64 }),
+  /** Round number */
+  roundNumber: int("roundNumber"),
+  /** Home team name */
+  homeTeam: varchar("homeTeam", { length: 128 }).notNull(),
+  /** Away team name */
+  awayTeam: varchar("awayTeam", { length: 128 }).notNull(),
+  /** Opponent team name (derived from home/away) */
+  opponent: varchar("opponent", { length: 128 }).notNull(),
+  /** Stadium name */
+  stadium: varchar("stadium", { length: 256 }),
+  /** Whether Marinos is home ("home") or away ("away") */
+  marinosSide: mysqlEnum("marinosSide", ["home", "away"]),
+  /** Home team score */
+  homeScore: int("homeScore"),
+  /** Away team score */
+  awayScore: int("awayScore"),
+  /** Match status (e.g., "Finished", "Scheduled") */
+  status: varchar("status", { length: 64 }),
+  /** Whether the match has been played */
+  isResult: int("isResult").default(0).notNull(), // 0 = false, 1 = true
+  /** URL to match details */
+  matchUrl: text("matchUrl"),
+  /** Last updated timestamp */
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Match = typeof matches.$inferSelect;
+export type InsertMatch = typeof matches.$inferInsert;
+
+/**
+ * User's match attendance log
+ * Tracks which matches the user has attended or plans to attend
+ */
+export const userMatches = mysqlTable("userMatches", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Reference to user */
+  userId: int("userId").notNull(),
+  /** Reference to official match (nullable for manual entries) */
+  matchId: int("matchId"),
+  /** Match date (ISO format) */
+  date: varchar("date", { length: 10 }).notNull(),
+  /** Kickoff time */
+  kickoff: varchar("kickoff", { length: 5 }),
+  /** Competition name */
+  competition: varchar("competition", { length: 128 }),
+  /** Opponent name */
+  opponent: varchar("opponent", { length: 128 }).notNull(),
+  /** Stadium name */
+  stadium: varchar("stadium", { length: 256 }),
+  /** Home or Away */
+  marinosSide: mysqlEnum("marinosSide", ["home", "away"]),
+  /** Status: "planned" or "attended" */
+  status: mysqlEnum("status", ["planned", "attended"]).default("planned").notNull(),
+  /** Match result: W/D/L */
+  resultWdl: mysqlEnum("resultWdl", ["W", "D", "L"]),
+  /** Marinos goals */
+  marinosGoals: int("marinosGoals"),
+  /** Opponent goals */
+  opponentGoals: int("opponentGoals"),
+  /** Cost in JPY */
+  costYen: int("costYen").default(0).notNull(),
+  /** Personal notes */
+  note: text("note"),
+  /** Created timestamp */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  /** Updated timestamp */
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserMatch = typeof userMatches.$inferSelect;
+export type InsertUserMatch = typeof userMatches.$inferInsert;
+
+/**
+ * Sync log for tracking scraping operations
+ */
+export const syncLogs = mysqlTable("syncLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Source (e.g., "jleague") */
+  source: varchar("source", { length: 32 }).notNull(),
+  /** Status: "success" or "failed" */
+  status: mysqlEnum("status", ["success", "failed"]).notNull(),
+  /** Number of matches fetched */
+  matchesCount: int("matchesCount").default(0).notNull(),
+  /** Error message if failed */
+  errorMessage: text("errorMessage"),
+  /** Sync timestamp */
+  syncedAt: timestamp("syncedAt").defaultNow().notNull(),
+});
+
+export type SyncLog = typeof syncLogs.$inferSelect;
+export type InsertSyncLog = typeof syncLogs.$inferInsert;
