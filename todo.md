@@ -1,143 +1,66 @@
 # Marinos Away Log V2 - Project TODO
 
-## Phase 1: Project Setup & Schema Design
-- [x] Project initialized with web-db-user scaffold
-- [x] Database schema designed (matches, userMatches, sync logs)
-- [x] Drizzle schema.ts updated with match-related tables
-- [x] Database migrations applied (pnpm db:push)
-- [x] todo.md created
-## Phase 2: Scraping Logic Research & Design
-- [x] Jリーグ公式サイト構造を調查
-- [x] JSON-LD データ抽出パターンを確認
-- [x] HTML セレクタ フォールバックを設計
-- [x] エラーハンドリング戦略を定群義
+## NorthStarGoal
+- 公式試合データを取り込み、ユーザーが観戦した試合の記録と費用を蓄積できる
+- 観戦試合の結果（勝敗など）と費用（合計・内訳）を集計できる
 
-## Phase 3: Robust Scraping API Implementation
-- [x] Cheerio + Node-fetch を使用した基本スクレイピング実装
-- [x] JSON-LD パーサー実装（最優先）
-- [x] 多重フォールバック セレクタ実装
-- [x] エラーハンドリング・リトライロジック実装
-- [x] 試合データ正規化関数実装
-- [x] API エンドポイント実装 (/api/trpc/matches.fetchOfficial)
-- [x] スクレイピング機能のテスト実装
+## MVP
+### A. 公式試合データ（基盤）
+- 公式データを取得しDBへ同期（最低限のフィールドが埋まる）
+- 日付、キックオフ、対戦（home/away）、会場、スコア/結果、競技/大会、節/ラウンド
+- データが取れない時はログに残り、アプリは落ちない
 
-## Phase 4: Database Schema & Operations
-- [x] matches テーブル設計（試合情報）
-- [x] userMatches テーブル設計（ユーザーの観戦記録）
-- [x] syncLog テーブル設計（同期履歴）
-- [x] server/db.ts に DB クエリヘルパー実装
-- [x] マイグレーション実行
+### B. 観戦記録（ユーザー入力）
+- 試合を1件選んで「観戦した」として登録できる
+- 登録項目（MVP最小）
+- 観戦日（datetime）
+- 費用合計（number）
+- メモ（text、任意）
+- 任意でHome/Awayは試合情報から判定 or 選択不要
+- 編集・削除ができる
 
-## Phase 5: Frontend Basic Structure & Mobile UI
-- [x] デザイン方針決定（カラーパレット、タイポグラフィ、アイコン）
-- [x] グローバルスタイル設定（index.css）
-- [x] ナビゲーション構造設計
-- [x] ホームページ実装
-- [x] 試合一覧ページ実装
-- [x] モバイル対応テストスポンシブ UI 実装
+### C. 集計（MVP最小）
+- 観戦試合の集計
+- 観戦試合数
+- 勝・分・敗（※スコアがある試合のみ対象、未確定は除外）
+- 費用集計
+- 費用合計
+- 1試合あたり平均費用（費用合計 / 観戦試合数）
+- フィルタ
+- 年（または期間指定）で絞れる
 
-## Phase 6: Match Management Features
-- [x] マッチ一覧ページ実装
-- [x] 公式試合データ同期機能実装
-- [x] マッチ追加機能実装（My Match Log に追加）
-- [x] マッチ詳細ページ実装
-- [x] マッチ編集機能実装（コスト、メモ）
-- [x] マッチ削除機能実装
-- [x] データ同期ロジック実装
+### D. 画面（MVP最小の3画面）
+- 試合一覧（公式）
+- 公式試合を一覧表示、各試合から詳細へ
+- 試合詳細（観戦ログ入力）
+- 試合情報＋「観戦記録の追加/編集/削除」
+- 集計（Stats）
+- 観戦数、勝分敗、費用合計、平均、期間フィルタ
 
-## Phase 7: Statistics & Display
-- [ ] 統計計算ロジック実装（勝敗、費用合計、試合数）
-- [ ] 統計ページ実装
-- [ ] グラフ・チャート表示実装
-- [ ] 統計データのテスト実装
+## Data Model（MVP最小）
+### matches（公式試合）
+id
+date（YYYY-MM-DD）
+kickoff（HH:MM）
+competition（大会名）
+roundLabel（第◯節/MD◯など）
+stadium（会場）
+home / away
+homeScore / awayScore（null可）
+status（試合終了/試合前など）
+sourceUrl（matchUrl）
+fetchedAt / updatedAt（任意）
 
-## Phase 8: Final Testing & Optimization
-- [ ] 全機能の統合テスト
-- [ ] モバイルデバイスでのテスト
-- [ ] パフォーマンス最適化
-- [ ] エラーハンドリング検証
-- [ ] 最終チェックポイント作成
-- [ ] ユーザーへの納品
+### userMatches（観戦ログ）
+id
+matchId（FK）
+watchedAt（datetime）
+costTotal（number）
+memo（text, nullable）
+createdAt / updatedAt
 
-## Known Issues & Constraints
-- Jリーグ公式サイトの構造変化に対応するため、JSON-LD を最優先とする
-- スクレイピングの失敗時は詳細なエラーログを記録
-- オフラインでも過去のデータは表示可能にする
-
-## Phase 8: UI Language Localization
-- [x] Home.tsx を日本語に統一
-- [x] Matches.tsx を日本語に統一
-- [x] ボタンラベルを日本語に統一
-- [x] エラーメッセージを日本語に統一
-- [x] 日本語表示の確認テスト
-
-## Phase 9: Bug Fix - Sync Functionality
-- [x] matches.fetchOfficial エンドポイントのデバッグ
-- [x] matches.listOfficial エンドポイントのデバッグ
-- [x] フロントエンドの同期ロジック検証
-- [x] エラーハンドリングの改善
-- [x] 同期機能の統合テスト
-
-## Phase 10: Comprehensive Data Scraping - Future & Past Matches
-- [x] 横浜F・マリノス公式サイトの構造調査
-- [x] 未来試合日程の取得機能実装
-- [x] 過去試合結果の取得機能実装
-- [x] 複数ソースからのデータ統合
-- [x] スクレイピング機能の統合テスト
-- [x] UI での同期結果表示改善
-- [x] ユニットテスト実装、全テスト成功 (37 tests passed)
-
-## Phase 11: Match Detail Page Implementation
-- [x] userMatches テーブルの確認・スキーマ拡張
-- [x] tRPC プロシージャ実装（getMatchDetail、addUserMatch、updateUserMatch、deleteUserMatch）
-- [x] 試合詳細ページコンポーネント実装
-- [x] 観戦記録フォーム実装（コスト、メモ、観戦日時）
-- [x] 試合一覧からの詳細ページへのナビゲーション実装
-- [x] 詳細ページのテスト実装 (22 tests passed, total 59 tests)
-
-## Phase 12: Filtering Feature Implementation
-- [x] フィルタリングUIコンポーネント実装（日付範囲、対戦相手、ホーム/アウェイ）
-- [x] フィルタリングロジック実装
-- [x] 試合一覧ページへの統合
-- [x] フィルタリング状态の保存
-- [x] テスト実装
-
-## Phase 13: Bug Fix - Auto-fetch & Sync Button Removal
-- [x] 試合情報読み込み失敗の原因調查
-- [x] スクレイピング機能のデバッグ
-- [x] ページアクセス時の自動読み込み実装
-- [x] 同期ボタンの削除
-- [x] 強制同期ボタンの削除
-- [x] テスト実装・実行 (59 tests passed)
-
-## Phase 14: J-League Official Site Scraping
-- [x] Jリーグ公式サイトのスクレイピング検証
-- [x] Jリーグ公式サイトスクレイパーの実装
-- [x] 試合結果・会場情報の抽出
-- [x] 複数ソースの統合
-- [x] テスト実装・実行 (11 tests added, 70 total tests passed)
-
-## Phase 15: Accurate Scraping Implementation - 3 Sources Integration
-- [x] Jリーグ公式サイト（https://www.jleague.jp/match/search/）から正確な試合情報を取得
-- [x] 横浜F・マリノス公式サイトから試合日程・結果を取得
-- [x] Football-Lab（https://www.football-lab.jp/y-fm）から詳細情報を取得
-- [x] 3つのソースを統合し、正確な試合データを構築
-- [x] Puppeteerの導入検討（JavaScriptレンダリング対応）
-- [ ] 実際の試合情報でテストデータを更新
-- [ ] スクレイピング機能の統合テスト実装
-
-
-## Phase 16: Accurate Scraper Implementation - Real Page Structure
-- [ ] マリノス公式サイトのHTML構造を分析（カード形式の正確なセレクタを特定）
-- [ ] Puppeteerスクレイパーを修正実装（実際のカード形式に対応）
-- [ ] 修正したスクレイパーで実際のデータ取得をテスト
-- [ ] Jリーグ公式サイトのスクレイパーも同様に修正
-- [ ] 複数ソースの統合テストを実施
-
-
-## Phase 17: Integration of Corrected Scraper Source
-- [x] 修正されたserver.jsをプロジェクトに統合（複数ソース対応）
-- [x] matchUtils.jsとconstants.jsをプロジェクトに統合
-- [x] 既存のPuppeteerベースのスクレイパーを置き換え
-- [ ] 統合されたスクレイパーをテスト（Jリーグ、Google Calendar、Phewから正確なデータ取得）
-- [ ] フロントエンドでAPI呼び出しを実装し、試合情報を表示
+## API（MVP最小）
+matches.fetchOfficial：公式試合を取得→DB upsert（同期）
+matches.listOfficial：DBの公式試合一覧
+userMatches.add/update/delete/getByMatchId：観戦ログCRUD
+stats.getSummary：期間指定で集計（観戦数、勝分敗、費用合計、平均）
