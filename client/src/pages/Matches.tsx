@@ -273,14 +273,14 @@ export default function Matches() {
           </div>
         </div>
 
-        {/* 試合リスト */}
+        {/* 試合リスト - 2カラムレイアウト */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-accent" />
           </div>
         ) : filteredMatches.length === 0 && matches.length > 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
+            <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">
                 フィルター条件に合致する試合がありません。
               </p>
@@ -288,124 +288,181 @@ export default function Matches() {
           </Card>
         ) : matches.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
+            <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">
                 試合情報が見つかりません。
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {displayedMatches.map((match) => {
-              const venueInfo = getVenueInfo(match.marinosSide);
-              const isFinished = match.isResult === 1;
-              const mapsUrl = getGoogleMapsUrl(match.stadium);
-              const matchResult = getMatchResult(match);
-              
-              // Border color: green for upcoming, result-based for finished
-              const borderClass = isFinished 
-                ? `border-l-4 ${matchResult.borderColor}` 
-                : 'border-l-4 border-l-green-500';
-              
-              return (
-                <Card 
-                  key={match.id || match.sourceKey} 
-                  className={`hover:shadow-md transition-shadow ${borderClass}`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex-1 min-w-0">
-                        {/* 大会名・節情報 + H/A */}
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${venueInfo.color}`}>
-                            {venueInfo.label}
-                          </span>
-                          {match.competition && (
-                            <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-medium rounded dark:bg-slate-800 dark:text-slate-300">
-                              {match.competition}
-                            </span>
-                          )}
-                          {isFinished ? (
-                            <span className="inline-block px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded dark:bg-gray-700 dark:text-gray-300">
-                              終了
-                            </span>
-                          ) : (
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded dark:bg-green-900 dark:text-green-300">
-                              予定
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* 対戦カード */}
-                        <div className="font-semibold text-lg text-foreground">
-                          横浜FM vs {match.opponent}
-                        </div>
-                        
-                        {/* 日時・会場 */}
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-2">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {formatDate(match.date)}
-                          </span>
-                          {match.kickoff && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" />
-                              {match.kickoff}
-                            </span>
-                          )}
-                          {match.stadium && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3.5 w-3.5" />
-                              {mapsUrl ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* 左カラム: 予定試合 */}
+            <div>
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                今後の予定
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({displayedMatches.filter(m => m.isResult !== 1).length}件)
+                </span>
+              </h2>
+              <div className="space-y-2">
+                {displayedMatches.filter(m => m.isResult !== 1).map((match) => {
+                  const venueInfo = getVenueInfo(match.marinosSide);
+                  const mapsUrl = getGoogleMapsUrl(match.stadium);
+                  
+                  return (
+                    <Card 
+                      key={match.id || match.sourceKey} 
+                      className="hover:shadow-md transition-shadow border-l-4 border-l-green-500"
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                              <span className={`px-1.5 py-0.5 text-xs font-bold rounded ${venueInfo.color}`}>
+                                {venueInfo.label}
+                              </span>
+                              {match.competition && (
+                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 text-xs rounded dark:bg-slate-800 dark:text-slate-300">
+                                  {match.competition}
+                                </span>
+                              )}
+                            </div>
+                            <div className="font-medium text-sm">
+                              vs {match.opponent}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center gap-0.5">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(match.date)}
+                              </span>
+                              {match.kickoff && (
+                                <span className="flex items-center gap-0.5">
+                                  <Clock className="h-3 w-3" />
+                                  {match.kickoff}
+                                </span>
+                              )}
+                              {match.stadium && mapsUrl && (
                                 <a 
                                   href={mapsUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline dark:text-blue-400"
-                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-0.5 text-blue-600 hover:underline dark:text-blue-400"
                                 >
+                                  <MapPin className="h-3 w-3" />
                                   {match.stadium}
                                 </a>
-                              ) : (
-                                match.stadium
                               )}
-                            </span>
-                          )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0 h-7 px-2 text-xs"
+                            onClick={() => setLocation(`/matches/${match.id}`)}
+                          >
+                            詳細
+                          </Button>
                         </div>
-                      </div>
-                      
-                      {/* スコア + 結果 */}
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-3">
-                          {matchResult.result && (
-                            <span className={`inline-flex items-center justify-center w-8 h-8 text-sm font-bold rounded-full ${matchResult.bgColor} ${matchResult.textColor}`}>
-                              {matchResult.label}
-                            </span>
-                          )}
-                          <div className={`text-2xl font-bold ${isFinished ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {formatScore(match)}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {displayedMatches.filter(m => m.isResult !== 1).length === 0 && (
+                  <p className="text-sm text-muted-foreground py-4 text-center">予定試合がありません</p>
+                )}
+              </div>
+            </div>
+
+            {/* 右カラム: 過去試合 */}
+            <div>
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-gray-400"></span>
+                過去の試合
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({displayedMatches.filter(m => m.isResult === 1).length}件)
+                </span>
+              </h2>
+              <div className="space-y-2">
+                {displayedMatches.filter(m => m.isResult === 1).map((match) => {
+                  const venueInfo = getVenueInfo(match.marinosSide);
+                  const mapsUrl = getGoogleMapsUrl(match.stadium);
+                  const matchResult = getMatchResult(match);
+                  
+                  return (
+                    <Card 
+                      key={match.id || match.sourceKey} 
+                      className={`hover:shadow-md transition-shadow border-l-4 ${matchResult.borderColor}`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                              <span className={`px-1.5 py-0.5 text-xs font-bold rounded ${venueInfo.color}`}>
+                                {venueInfo.label}
+                              </span>
+                              {match.competition && (
+                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 text-xs rounded dark:bg-slate-800 dark:text-slate-300">
+                                  {match.competition}
+                                </span>
+                              )}
+                            </div>
+                            <div className="font-medium text-sm">
+                              vs {match.opponent}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center gap-0.5">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(match.date)}
+                              </span>
+                              {match.stadium && mapsUrl && (
+                                <a 
+                                  href={mapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-0.5 text-blue-600 hover:underline dark:text-blue-400"
+                                >
+                                  <MapPin className="h-3 w-3" />
+                                  {match.stadium}
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {matchResult.result && (
+                              <span className={`inline-flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full ${matchResult.bgColor} ${matchResult.textColor}`}>
+                                {matchResult.label}
+                              </span>
+                            )}
+                            <div className="text-lg font-bold w-12 text-center">
+                              {formatScore(match)}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setLocation(`/matches/${match.id}`)}
+                            >
+                              詳細
+                            </Button>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setLocation(`/matches/${match.id}`)}
-                        >
-                          詳細
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            
-            {/* More indicator */}
-            {pageSize > 0 && filteredMatches.length > pageSize && (
-              <div className="text-center py-4 text-sm text-muted-foreground">
-                {filteredMatches.length - pageSize}件の試合が非表示です（表示件数を増やすか「全件」を選択してください）
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {displayedMatches.filter(m => m.isResult === 1).length === 0 && (
+                  <p className="text-sm text-muted-foreground py-4 text-center">過去の試合がありません</p>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+        )}
+        
+        {/* More indicator */}
+        {pageSize > 0 && filteredMatches.length > pageSize && (
+          <div className="text-center py-3 text-sm text-muted-foreground">
+            {filteredMatches.length - pageSize}件の試合が非表示です
           </div>
         )}
 
