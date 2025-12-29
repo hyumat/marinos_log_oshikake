@@ -3,10 +3,13 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock, Check, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { MatchFilter, type FilterState } from '@/components/MatchFilter';
 import { toast } from 'sonner';
+
+type AttendanceStatus = 'undecided' | 'attending' | 'not-attending';
 
 interface Match {
   id: number;
@@ -44,6 +47,21 @@ export default function Matches() {
     marinosSide: 'all',
     watchedOnly: false,
   });
+  const [attendanceStatus, setAttendanceStatus] = useState<Record<string, AttendanceStatus>>({});
+
+  const getAttendanceStatus = (matchId: number | string): AttendanceStatus => {
+    return attendanceStatus[String(matchId)] || 'undecided';
+  };
+
+  const handleAttendanceChange = (matchId: number | string, status: AttendanceStatus, navigate: boolean = false) => {
+    setAttendanceStatus(prev => ({
+      ...prev,
+      [String(matchId)]: status,
+    }));
+    if (navigate && status === 'attending') {
+      setLocation(`/matches/${matchId}`);
+    }
+  };
 
   // tRPC クエリ・ミューテーション
   const { data: matchesData, isLoading: isLoadingMatches, refetch } = trpc.matches.listOfficial.useQuery({});
@@ -364,14 +382,126 @@ export default function Matches() {
                                 )}
                               </div>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="shrink-0 h-7 px-2 text-xs bg-green-50 border-green-300 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-700 dark:text-green-400"
-                              onClick={() => setLocation(`/matches/${match.id}`)}
-                            >
-                              観戦予定
-                            </Button>
+                            {(() => {
+                              const status = getAttendanceStatus(match.id);
+                              if (status === 'undecided') {
+                                return (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="shrink-0 h-7 px-2 text-xs bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400"
+                                      >
+                                        観戦未定
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-1" align="end">
+                                      <div className="flex flex-col gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-green-700 hover:text-green-800 hover:bg-green-50"
+                                          onClick={() => handleAttendanceChange(match.id, 'attending', true)}
+                                        >
+                                          <Check className="w-3 h-3 mr-2" />
+                                          参加
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                          onClick={() => handleAttendanceChange(match.id, 'not-attending', false)}
+                                        >
+                                          <X className="w-3 h-3 mr-2" />
+                                          不参加
+                                        </Button>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                );
+                              } else if (status === 'attending') {
+                                return (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="shrink-0 h-7 px-2 text-xs bg-green-100 border-green-400 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:border-green-600 dark:text-green-400"
+                                      >
+                                        <Check className="w-3 h-3 mr-1" />
+                                        参加
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-1" align="end">
+                                      <div className="flex flex-col gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs"
+                                          onClick={() => setLocation(`/matches/${match.id}`)}
+                                        >
+                                          詳細を見る
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-gray-600 hover:text-gray-700"
+                                          onClick={() => handleAttendanceChange(match.id, 'undecided', false)}
+                                        >
+                                          未定に戻す
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                          onClick={() => handleAttendanceChange(match.id, 'not-attending', false)}
+                                        >
+                                          <X className="w-3 h-3 mr-2" />
+                                          不参加
+                                        </Button>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                );
+                              } else {
+                                return (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="shrink-0 h-7 px-2 text-xs bg-red-50 border-red-300 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-700 dark:text-red-400"
+                                      >
+                                        <X className="w-3 h-3 mr-1" />
+                                        不参加
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-1" align="end">
+                                      <div className="flex flex-col gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-green-700 hover:text-green-800 hover:bg-green-50"
+                                          onClick={() => handleAttendanceChange(match.id, 'attending', true)}
+                                        >
+                                          <Check className="w-3 h-3 mr-2" />
+                                          参加
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="justify-start h-8 text-xs text-gray-600 hover:text-gray-700"
+                                          onClick={() => handleAttendanceChange(match.id, 'undecided', false)}
+                                        >
+                                          未定に戻す
+                                        </Button>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                );
+                              }
+                            })()}
                           </div>
                         </CardContent>
                       </Card>
