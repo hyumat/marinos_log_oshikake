@@ -48,9 +48,13 @@ export const matchesRouter = router({
             matchUrl: f.matchUrl,
           }));
           
-          // Save to database
-          await upsertMatches(dbMatches);
-          console.log(`[Matches Router] Saved ${dbMatches.length} matches to database`);
+          // Try to save to database (don't fail if DB is unavailable)
+          try {
+            await upsertMatches(dbMatches);
+            console.log(`[Matches Router] Saved ${dbMatches.length} matches to database`);
+          } catch (dbError) {
+            console.log('[Matches Router] DB unavailable, skipping save');
+          }
         }
         
         return {
@@ -63,9 +67,14 @@ export const matchesRouter = router({
         
       } catch (error) {
         console.error('[Matches Router] Error fetching official matches:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to fetch official matches'
-        );
+        // Return empty success instead of throwing
+        return {
+          success: false,
+          matches: 0,
+          results: 0,
+          upcoming: 0,
+          stats: { total: 0, results: 0, upcoming: 0 },
+        };
       }
     }),
 

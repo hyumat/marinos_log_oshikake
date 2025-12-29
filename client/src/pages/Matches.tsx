@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { MatchFilter, type FilterState } from '@/components/MatchFilter';
 import { toast } from 'sonner';
@@ -40,28 +40,31 @@ export default function Matches() {
   const { data: matchesData, isLoading: isLoadingMatches, refetch } = trpc.matches.listOfficial.useQuery({});
   const fetchOfficialMutation = trpc.matches.fetchOfficial.useMutation();
 
-  // ページアクセス時に試合データを自動取得
+  // ページアクセス時はキャッシュデータを表示（スクレイピングは手動）
   useEffect(() => {
-    const fetchMatches = async () => {
-      setIsLoading(true);
-      try {
-        // First, fetch fresh data from Marinos site
-        await fetchOfficialMutation.mutateAsync({ force: true });
-        // Then, refetch from database
-        await refetch();
-        toast.success('試合情報を更新しました');
-      } catch (error) {
-        console.error('Failed to fetch matches:', error);
+    if (!isLoadingMatches) {
+      setIsLoading(false);
+    }
+  }, [isLoadingMatches]);
+  
+  // 手動で最新データを取得
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    try {
+      const result = await fetchOfficialMutation.mutateAsync({ force: true });
+      await refetch();
+      if (result.success) {
+        toast.success(`試合情報を更新しました（${result.matches}件）`);
+      } else {
         toast.error('試合情報の取得に失敗しました');
-        // Still try to show cached data
-        await refetch();
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchMatches();
-  }, []);
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+      toast.error('試合情報の取得に失敗しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (matchesData?.matches) {
@@ -124,10 +127,11 @@ export default function Matches() {
   };
 
   const formatScore = (match: Match) => {
-    if (match.homeScore !== null && match.awayScore !== null) {
+    if (match.homeScore !== undefined && match.homeScore !== null && 
+        match.awayScore !== undefined && match.awayScore !== null) {
       return `${match.homeScore}-${match.awayScore}`;
     }
-    return '-';
+    return 'vs';
   };
 
   const getVenueTag = (marinosSide?: string) => {
@@ -166,6 +170,15 @@ export default function Matches() {
           </div>
           <div className="flex gap-2">
             <Button
+              onClick={handleRefresh}
+              size="sm"
+              variant="outline"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              公式から取得
+            </Button>
+            <Button
               onClick={() => {}}
               size="sm"
             >
@@ -199,7 +212,7 @@ export default function Matches() {
         ) : (
           <div className="space-y-3">
             {filteredMatches.map((match) => (
-              <Card key={match.id} className="hover:shadow-md transition-shadow">
+              <Card key={match.id || match.sourceKey} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex-1 min-w-0">
@@ -228,7 +241,7 @@ export default function Matches() {
                           {formatScore(match)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {match.isResult ? '試合終了' : '予定'}
+                          {match.isResult === 1 ? '試合終了' : '予定'}
                         </div>
                       </div>
                       <Button
@@ -267,7 +280,7 @@ export default function Matches() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {filteredMatches.filter(m => m.isResult).length}
+                  {filteredMatches.filter(m => m.isResult === 1).length}
                 </div>
               </CardContent>
             </Card>
@@ -279,7 +292,7 @@ export default function Matches() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {filteredMatches.filter(m => !m.isResult).length}
+                  {filteredMatches.filter(m => m.isResult !== 1).length}
                 </div>
               </CardContent>
             </Card>
