@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock, Trophy, Minus, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { MatchFilter, type FilterState } from '@/components/MatchFilter';
 import { toast } from 'sonner';
@@ -24,11 +25,15 @@ interface Match {
   matchUrl: string;
 }
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, 0] as const; // 0 = all
+
 export default function Matches() {
   const [, setLocation] = useLocation();
   const [matches, setMatches] = useState<Match[]>([]);
   const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
+  const [displayedMatches, setDisplayedMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pageSize, setPageSize] = useState<number>(20);
   const [filters, setFilters] = useState<FilterState>({
     dateFrom: '',
     dateTo: '',
@@ -91,6 +96,15 @@ export default function Matches() {
   useEffect(() => {
     applyFilters(matches, filters);
   }, [filters]);
+
+  // Apply page size limit
+  useEffect(() => {
+    if (pageSize === 0) {
+      setDisplayedMatches(filteredMatches);
+    } else {
+      setDisplayedMatches(filteredMatches.slice(0, pageSize));
+    }
+  }, [filteredMatches, pageSize]);
 
   const applyFilters = (matchList: Match[], filterState: FilterState) => {
     let result = matchList;
@@ -160,6 +174,42 @@ export default function Matches() {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stadium)}`;
   };
 
+  // Determine match result from Marinos perspective
+  const getMatchResult = (match: Match): { result: 'win' | 'lose' | 'draw' | null; label: string; bgColor: string; textColor: string; borderColor: string } => {
+    if (!match.isResult || match.homeScore === undefined || match.awayScore === undefined) {
+      return { result: null, label: '', bgColor: '', textColor: '', borderColor: 'border-l-gray-400' };
+    }
+
+    const marinosScore = match.marinosSide === 'home' ? match.homeScore : match.awayScore;
+    const opponentScore = match.marinosSide === 'home' ? match.awayScore : match.homeScore;
+
+    if (marinosScore > opponentScore) {
+      return { 
+        result: 'win', 
+        label: '勝', 
+        bgColor: 'bg-blue-600', 
+        textColor: 'text-white',
+        borderColor: 'border-l-blue-500'
+      };
+    } else if (marinosScore < opponentScore) {
+      return { 
+        result: 'lose', 
+        label: '負', 
+        bgColor: 'bg-red-600', 
+        textColor: 'text-white',
+        borderColor: 'border-l-red-500'
+      };
+    } else {
+      return { 
+        result: 'draw', 
+        label: '分', 
+        bgColor: 'bg-gray-500', 
+        textColor: 'text-white',
+        borderColor: 'border-l-gray-500'
+      };
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -180,11 +230,26 @@ export default function Matches() {
 
         {/* コントロール */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">表示件数:</span>
+              <Select value={String(pageSize)} onValueChange={(val) => setPageSize(Number(val))}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size === 0 ? '全件' : `${size}件`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             {isLoading && (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                試合情報を読み込み中...
+                読み込み中...
               </span>
             )}
           </div>
@@ -231,15 +296,21 @@ export default function Matches() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredMatches.map((match) => {
+            {displayedMatches.map((match) => {
               const venueInfo = getVenueInfo(match.marinosSide);
               const isFinished = match.isResult === 1;
               const mapsUrl = getGoogleMapsUrl(match.stadium);
+              const matchResult = getMatchResult(match);
+              
+              // Border color: green for upcoming, result-based for finished
+              const borderClass = isFinished 
+                ? `border-l-4 ${matchResult.borderColor}` 
+                : 'border-l-4 border-l-green-500';
               
               return (
                 <Card 
                   key={match.id || match.sourceKey} 
-                  className={`hover:shadow-md transition-shadow ${isFinished ? 'border-l-4 border-l-gray-400' : 'border-l-4 border-l-green-500'}`}
+                  className={`hover:shadow-md transition-shadow ${borderClass}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -303,9 +374,14 @@ export default function Matches() {
                         </div>
                       </div>
                       
-                      {/* スコア */}
+                      {/* スコア + 結果 */}
                       <div className="flex items-center gap-4">
-                        <div className="text-right">
+                        <div className="flex items-center gap-3">
+                          {matchResult.result && (
+                            <span className={`inline-flex items-center justify-center w-8 h-8 text-sm font-bold rounded-full ${matchResult.bgColor} ${matchResult.textColor}`}>
+                              {matchResult.label}
+                            </span>
+                          )}
                           <div className={`text-2xl font-bold ${isFinished ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {formatScore(match)}
                           </div>
@@ -323,43 +399,86 @@ export default function Matches() {
                 </Card>
               );
             })}
+            
+            {/* More indicator */}
+            {pageSize > 0 && filteredMatches.length > pageSize && (
+              <div className="text-center py-4 text-sm text-muted-foreground">
+                {filteredMatches.length - pageSize}件の試合が非表示です（表示件数を増やすか「全件」を選択してください）
+              </div>
+            )}
           </div>
         )}
 
         {/* 統計情報 */}
         {filteredMatches.length > 0 && (
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-6">
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  表示中の試合数
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  全試合
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{filteredMatches.length}</div>
+                <div className="text-xl font-bold">{filteredMatches.length}</div>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  結果済み
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  予定
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {filteredMatches.filter(m => m.isResult === 1).length}
+                <div className="text-xl font-bold text-green-600">
+                  {filteredMatches.filter(m => m.isResult !== 1).length}
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  予定中
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  終了
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {filteredMatches.filter(m => m.isResult !== 1).length}
+                <div className="text-xl font-bold">
+                  {filteredMatches.filter(m => m.isResult === 1).length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-blue-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  勝ち
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold text-blue-600">
+                  {filteredMatches.filter(m => getMatchResult(m).result === 'win').length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-gray-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  引き分け
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold text-gray-600">
+                  {filteredMatches.filter(m => getMatchResult(m).result === 'draw').length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-red-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  負け
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold text-red-600">
+                  {filteredMatches.filter(m => getMatchResult(m).result === 'lose').length}
                 </div>
               </CardContent>
             </Card>
