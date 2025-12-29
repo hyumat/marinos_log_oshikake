@@ -6,50 +6,9 @@ import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
 import { upsertMatches, getMatches } from '../db';
 import { getSampleMatches } from '../test-data';
-import { scrapeAllMarinosMatches } from '../marinos-scraper';
-import { scrapeAllMarinosMatchesPuppeteer } from '../marinos-scraper-puppeteer';
-import { scrapeJLeagueMatches } from '../jleague-scraper';
+import { scrapeAllMatches } from '../unified-scraper';
 
-/**
- * Merge and deduplicate matches from multiple sources
- */
-function mergeMatches(
-  marinosMatches: any[] = [],
-  jleagueMatches: any[] = [],
-  testMatches: any[] = []
-) {
-  const allMatches = [...marinosMatches, ...jleagueMatches, ...testMatches];
-  
-  // Create a map to deduplicate by date + opponent
-  const matchMap = new Map<string, any>();
-  
-  for (const match of allMatches) {
-    const key = `${match.date}-${match.opponent}`;
-    
-    // If we already have this match, prefer the one with more data
-    if (matchMap.has(key)) {
-      const existing = matchMap.get(key);
-      const newMatch = {
-        ...existing,
-        ...match,
-        // Prefer non-undefined values
-        homeScore: match.homeScore !== undefined ? match.homeScore : existing.homeScore,
-        awayScore: match.awayScore !== undefined ? match.awayScore : existing.awayScore,
-        stadium: match.stadium || existing.stadium,
-        kickoff: match.kickoff || existing.kickoff,
-      };
-      matchMap.set(key, newMatch);
-    } else {
-      matchMap.set(key, match);
-    }
-  }
-  
-  // Convert back to array and sort by date
-  const merged = Array.from(matchMap.values());
-  merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
-  return merged;
-}
+
 
 export const matchesRouter = router({
   /**
@@ -60,97 +19,33 @@ export const matchesRouter = router({
       z.object({
         force: z.boolean().default(false).optional(),
         year: z.number().optional(),
-        source: z.enum(['marinos', 'jleague', 'all']).default('all').optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
         console.log('[Matches Router] Starting official match fetch...');
         
-        const results = {
-          marinosMatches: [] as any[],
-          jleagueMatches: [] as any[],
-          testMatches: [] as any[],
-          errors: [] as any[],
-          stats: { total: 0, success: 0, failed: 0 },
-        };
+        // Fetch from unified scraper (Jリーグ公式 + Phew)
+        const { fixtures, results, upcoming, counts } = await scrapeAllMatches();
         
-        // Fetch from Marinos official site (try Puppeteer first, fallback to Cheerio)
-        if (input.source === 'all' || input.source === 'marinos') {
-          try {
-            console.log('[Matches Router] Fetching from Marinos official site (Puppeteer)...');
-            const marinosResult = await scrapeAllMarinosMatchesPuppeteer();
-            results.marinosMatches = marinosResult.matches;
-            results.errors.push(...marinosResult.errors);
-            console.log(`[Matches Router] Got ${marinosResult.matches.length} matches from Marinos (Puppeteer)`);
-            
-            // If Puppeteer fails, try Cheerio
-            if (marinosResult.matches.length === 0 && marinosResult.errors.length > 0) {
-              console.log('[Matches Router] Puppeteer failed, trying Cheerio fallback...');
-              const cheerioResult = await scrapeAllMarinosMatches();
-              results.marinosMatches = cheerioResult.matches;
-              results.errors = results.errors.filter(e => e.source !== 'marinos');
-              results.errors.push(...cheerioResult.errors);
-              console.log(`[Matches Router] Got ${cheerioResult.matches.length} matches from Marinos (Cheerio fallback)`);
-            }
-          } catch (error) {
-            console.error('[Matches Router] Error fetching from Marinos:', error);
-            results.errors.push({
-              source: 'marinos',
-              message: error instanceof Error ? error.message : 'Unknown error',
-              timestamp: new Date(),
-            });
-          }
-        }
+        console.log(`[Matches Router] Got ${fixtures.length} total matches`);
         
-        // Fetch from J-League official site
-        if (input.source === 'all' || input.source === 'jleague') {
-          try {
-            console.log('[Matches Router] Fetching from J-League official site...');
-            const jleagueResult = await scrapeJLeagueMatches();
-            results.jleagueMatches = jleagueResult.matches;
-            results.errors.push(...jleagueResult.errors);
-            console.log(`[Matches Router] Got ${jleagueResult.matches.length} matches from J-League`);
-          } catch (error) {
-            console.error('[Matches Router] Error fetching from J-League:', error);
-            results.errors.push({
-              source: 'jleague',
-              message: error instanceof Error ? error.message : 'Unknown error',
-              timestamp: new Date(),
-            });
-          }
-        }
-        
-        // Use test data as fallback
-        const testMatches = getSampleMatches();
-        results.testMatches = testMatches;
-        console.log(`[Matches Router] Using ${testMatches.length} test matches as fallback`);
-        
-        // Merge all matches
-        const mergedMatches = mergeMatches(
-          results.marinosMatches,
-          results.jleagueMatches,
-          results.testMatches
-        );
-        
-        console.log(`[Matches Router] Merged to ${mergedMatches.length} unique matches`);
-        
-        if (mergedMatches.length > 0) {
+        if (fixtures.length > 0) {
           // Convert to database format
-          const dbMatches = mergedMatches.map(m => ({
-            sourceKey: `${m.date}-${m.opponent}`,
-            date: m.date,
-            kickoff: m.kickoff,
-            competition: m.competition,
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            opponent: m.opponent,
-            stadium: m.stadium,
-            marinosSide: m.marinosSide,
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
-            isResult: m.isResult ? 1 : 0,
-            matchUrl: m.sourceUrl,
+          const dbMatches = fixtures.map(f => ({
+            sourceKey: `${f.date}-${f.opponent || f.away}`,
+            date: f.date,
+            kickoff: f.kickoff,
+            competition: f.competition,
+            homeTeam: f.home,
+            awayTeam: f.away,
+            opponent: f.opponent || (f.marinosSide === 'home' ? f.away : f.home),
+            stadium: f.stadium,
+            marinosSide: f.marinosSide,
+            homeScore: f.homeScore,
+            awayScore: f.awayScore,
+            isResult: f.isResult ? 1 : 0,
+            matchUrl: f.matchUrl,
           }));
           
           // Save to database
@@ -158,22 +53,12 @@ export const matchesRouter = router({
           console.log(`[Matches Router] Saved ${dbMatches.length} matches to database`);
         }
         
-        results.stats = {
-          total: mergedMatches.length,
-          success: mergedMatches.length,
-          failed: results.errors.length,
-        };
-        
         return {
           success: true,
-          matches: mergedMatches.length,
-          sources: {
-            marinos: results.marinosMatches.length,
-            jleague: results.jleagueMatches.length,
-            test: results.testMatches.length,
-          },
-          errors: results.errors.length,
-          stats: results.stats,
+          matches: fixtures.length,
+          results: results.length,
+          upcoming: upcoming.length,
+          stats: counts,
         };
         
       } catch (error) {

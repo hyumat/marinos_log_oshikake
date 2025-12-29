@@ -125,3 +125,19 @@
 - [x] Puppeteerの導入検討（JavaScriptレンダリング対応）
 - [ ] 実際の試合情報でテストデータを更新
 - [ ] スクレイピング機能の統合テスト実装
+
+
+## Phase 16: Accurate Scraper Implementation - Real Page Structure
+- [ ] マリノス公式サイトのHTML構造を分析（カード形式の正確なセレクタを特定）
+- [ ] Puppeteerスクレイパーを修正実装（実際のカード形式に対応）
+- [ ] 修正したスクレイパーで実際のデータ取得をテスト
+- [ ] Jリーグ公式サイトのスクレイパーも同様に修正
+- [ ] 複数ソースの統合テストを実施
+
+
+## Phase 17: Integration of Corrected Scraper Source
+- [x] 修正されたserver.jsをプロジェクトに統合（複数ソース対応）
+- [x] matchUtils.jsとconstants.jsをプロジェクトに統合
+- [x] 既存のPuppeteerベースのスクレイパーを置き換え
+- [ ] 統合されたスクレイパーをテスト（Jリーグ、Google Calendar、Phewから正確なデータ取得）
+- [ ] フロントエンドでAPI呼び出しを実装し、試合情報を表示
