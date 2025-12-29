@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { MatchFilter, type FilterState } from '@/components/MatchFilter';
 import { toast } from 'sonner';
@@ -134,10 +134,15 @@ export default function Matches() {
     return 'vs';
   };
 
-  const getVenueTag = (marinosSide?: string) => {
-    if (marinosSide === 'home') return 'H';
-    if (marinosSide === 'away') return 'A';
-    return 'O';
+  const getVenueInfo = (marinosSide?: string) => {
+    if (marinosSide === 'home') return { label: 'HOME', color: 'bg-blue-600 text-white' };
+    if (marinosSide === 'away') return { label: 'AWAY', color: 'bg-red-600 text-white' };
+    return { label: 'OTHER', color: 'bg-gray-500 text-white' };
+  };
+
+  const getGoogleMapsUrl = (stadium?: string) => {
+    if (!stadium) return null;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stadium)}`;
   };
 
   return (
@@ -211,51 +216,98 @@ export default function Matches() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredMatches.map((match) => (
-              <Card key={match.id || match.sourceKey} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-block px-2 py-1 bg-accent text-accent-foreground text-xs font-semibold rounded">
-                          {getVenueTag(match.marinosSide)}
-                        </span>
-                        {match.competition && (
-                          <span className="text-xs text-muted-foreground">
-                            {match.competition}
+            {filteredMatches.map((match) => {
+              const venueInfo = getVenueInfo(match.marinosSide);
+              const isFinished = match.isResult === 1;
+              const mapsUrl = getGoogleMapsUrl(match.stadium);
+              
+              return (
+                <Card 
+                  key={match.id || match.sourceKey} 
+                  className={`hover:shadow-md transition-shadow ${isFinished ? 'border-l-4 border-l-gray-400' : 'border-l-4 border-l-green-500'}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex-1 min-w-0">
+                        {/* 大会名・節情報 + H/A */}
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${venueInfo.color}`}>
+                            {venueInfo.label}
                           </span>
-                        )}
+                          {match.competition && (
+                            <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-medium rounded dark:bg-slate-800 dark:text-slate-300">
+                              {match.competition}
+                            </span>
+                          )}
+                          {isFinished ? (
+                            <span className="inline-block px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded dark:bg-gray-700 dark:text-gray-300">
+                              終了
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded dark:bg-green-900 dark:text-green-300">
+                              予定
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* 対戦カード */}
+                        <div className="font-semibold text-lg text-foreground">
+                          横浜FM vs {match.opponent}
+                        </div>
+                        
+                        {/* 日時・会場 */}
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-2">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formatDate(match.date)}
+                          </span>
+                          {match.kickoff && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {match.kickoff}
+                            </span>
+                          )}
+                          {match.stadium && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              {mapsUrl ? (
+                                <a 
+                                  href={mapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline dark:text-blue-400"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {match.stadium}
+                                </a>
+                              ) : (
+                                match.stadium
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="font-semibold text-foreground truncate">
-                        横浜FM vs {match.opponent}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {formatDate(match.date)}
-                        {match.kickoff && ` ${match.kickoff}`}
-                        {match.stadium && ` / ${match.stadium}`}
+                      
+                      {/* スコア */}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${isFinished ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {formatScore(match)}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setLocation(`/matches/${match.id}`)}
+                        >
+                          詳細
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-foreground">
-                          {formatScore(match)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {match.isResult === 1 ? '試合終了' : '予定'}
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setLocation(`/matches/${match.id}`)}
-                      >
-                        詳細
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
