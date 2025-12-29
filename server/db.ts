@@ -141,14 +141,14 @@ export async function upsertMatches(matchesData: any[]) {
   }
 }
 
-export async function getMatches(filters?: { year?: number; competition?: string }) {
-  const db = await getDb();
-  if (!db) {
-    console.warn('[Database] Cannot get matches: database not available');
-    return [];
-  }
-  
+export async function getMatches(filters?: { year?: number; competition?: string }): Promise<any[]> {
   try {
+    const db = await getDb();
+    if (!db) {
+      console.warn('[Database] Cannot get matches: database not available');
+      return [];
+    }
+    
     let query: any = db.select().from(matchesTable);
     
     if (filters?.year) {
@@ -158,9 +158,10 @@ export async function getMatches(filters?: { year?: number; competition?: string
       query = query.where(eq(matchesTable.competition, filters.competition));
     }
     
-    return await query;
+    const result = await query;
+    return result || [];
   } catch (error) {
-    console.error('[Database] Failed to get matches:', error);
+    console.warn('[Database] Failed to get matches, returning empty array:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }

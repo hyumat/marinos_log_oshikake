@@ -8,6 +8,9 @@ import { upsertMatches, getMatches } from '../db';
 import { getSampleMatches } from '../test-data';
 import { scrapeAllMatches } from '../unified-scraper';
 
+// In-memory cache for scraped matches (when DB unavailable)
+let cachedMatches: any[] | null = null;
+
 
 
 export const matchesRouter = router({
@@ -32,7 +35,8 @@ export const matchesRouter = router({
         
         if (fixtures.length > 0) {
           // Convert to database format
-          const dbMatches = fixtures.map(f => ({
+          const dbMatches = fixtures.map((f, idx) => ({
+            id: idx + 1,
             sourceKey: `${f.date}-${f.opponent || f.away}`,
             date: f.date,
             kickoff: f.kickoff,
@@ -48,12 +52,16 @@ export const matchesRouter = router({
             matchUrl: f.matchUrl,
           }));
           
+          // Store in memory cache for fast retrieval
+          cachedMatches = dbMatches;
+          console.log(`[Matches Router] Cached ${dbMatches.length} matches in memory`);
+          
           // Try to save to database (don't fail if DB is unavailable)
           try {
             await upsertMatches(dbMatches);
             console.log(`[Matches Router] Saved ${dbMatches.length} matches to database`);
           } catch (dbError) {
-            console.log('[Matches Router] DB unavailable, skipping save');
+            console.log('[Matches Router] DB unavailable, data cached in memory only');
           }
         }
         
@@ -79,7 +87,8 @@ export const matchesRouter = router({
     }),
 
   /**
-   * Get all official matches from database
+   * Get all official matches from database (fast, no scraping)
+   * Use fetchOfficial to update data from web sources
    */
   listOfficial: publicProcedure
     .input(
@@ -96,21 +105,33 @@ export const matchesRouter = router({
           competition: input.competition,
         });
         
-        // If no matches in database, use test data
-        if (dbMatches.length === 0) {
-          console.log('[Matches Router] No matches in database, using test data');
-          const testMatches = getSampleMatches();
+        // If database has matches, return them
+        if (dbMatches.length > 0) {
           return {
             success: true,
-            matches: testMatches as any,
-            count: testMatches.length,
+            matches: dbMatches,
+            count: dbMatches.length,
           };
         }
         
+        // Check in-memory cache (populated by fetchOfficial)
+        if (cachedMatches && cachedMatches.length > 0) {
+          console.log(`[Matches Router] Returning ${cachedMatches.length} cached matches`);
+          return {
+            success: true,
+            matches: cachedMatches,
+            count: cachedMatches.length,
+          };
+        }
+        
+        // No database/cache - return test data for fast initial load
+        // User should click "公式から取得" to fetch real data
+        console.log('[Matches Router] No matches available, returning test data');
+        const testMatches = getSampleMatches();
         return {
           success: true,
-          matches: dbMatches,
-          count: dbMatches.length,
+          matches: testMatches as any,
+          count: testMatches.length,
         };
         
       } catch (error) {
