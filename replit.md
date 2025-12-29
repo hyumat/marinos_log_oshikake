@@ -40,6 +40,12 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2025-12-29: マッチログ機能改善
+  - スコア表示バグ修正（undefined-undefined → vs表示）
+  - 手動更新ボタン追加（公式から取得）、ページ読み込み時の自動スクレイピングを廃止
+  - エラーハンドリング改善：DB接続失敗時もテストデータで動作
+  - success flagチェック追加でスクレイパー失敗をUIに反映
+
 - 2025-12-29: LPリブランディング
   - サービス名を「おしかけログ」に変更
   - マリノスカラー（トリコロール：青・白・赤）を控えめに適用
