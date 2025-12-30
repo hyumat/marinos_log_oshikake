@@ -129,9 +129,16 @@ export const statsRouter = router({
         };
       } catch (error) {
         console.error('[Stats Router] Error getting summary:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to get stats summary'
-        );
+        const isDbConnectionError = 
+          error instanceof Error && 
+          (error.message.includes('ECONNREFUSED') || 
+           error.message.includes('connect') ||
+           (error as any).cause?.code === 'ECONNREFUSED');
+        
+        if (isDbConnectionError) {
+          return emptyResult;
+        }
+        throw error;
       }
     }),
 
@@ -167,9 +174,19 @@ export const statsRouter = router({
       };
     } catch (error) {
       console.error('[Stats Router] Error getting available years:', error);
-      throw new Error(
-        error instanceof Error ? error.message : 'Failed to get available years'
-      );
+      const isDbConnectionError = 
+        error instanceof Error && 
+        (error.message.includes('ECONNREFUSED') || 
+         error.message.includes('connect') ||
+         (error as any).cause?.code === 'ECONNREFUSED');
+      
+      if (isDbConnectionError) {
+        return {
+          success: true,
+          years: [],
+        };
+      }
+      throw error;
     }
   }),
 });

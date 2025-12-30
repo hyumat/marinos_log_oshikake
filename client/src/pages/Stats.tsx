@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { AlertCircle, Trophy, Minus, X, HelpCircle, Wallet, Calculator } from "lucide-react";
+import { AlertCircle, Trophy, Minus, X, HelpCircle, Wallet, Calculator, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function StatsPage() {
   const currentYear = new Date().getFullYear();
@@ -21,6 +22,7 @@ function StatsPage() {
     data: statsData,
     isLoading: statsLoading,
     error: statsError,
+    refetch: refetchStats,
   } = trpc.stats.getSummary.useQuery({ year: selectedYear });
 
   const years = yearsData?.years ?? [];
@@ -41,9 +43,13 @@ function StatsPage() {
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
             <h2 className="text-xl font-semibold mb-2">エラーが発生しました</h2>
-            <p className="text-muted-foreground">
-              集計データの取得に失敗しました。しばらくしてから再度お試しください。
+            <p className="text-muted-foreground mb-4">
+              集計の取得に失敗しました
             </p>
+            <Button onClick={() => refetchStats()} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              再試行
+            </Button>
           </div>
         </div>
       </DashboardLayout>
@@ -129,7 +135,7 @@ function StatsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    ¥{(statsData?.costTotal ?? 0).toLocaleString()}
+                    ¥{(statsData?.cost?.total ?? 0).toLocaleString()}
                   </div>
                   <p className="text-sm text-muted-foreground">円</p>
                 </CardContent>
@@ -144,7 +150,7 @@ function StatsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    ¥{(statsData?.costAverage ?? 0).toLocaleString()}
+                    ¥{Math.round(statsData?.cost?.averagePerMatch ?? 0).toLocaleString()}
                   </div>
                   <p className="text-sm text-muted-foreground">円/試合</p>
                 </CardContent>
@@ -162,7 +168,7 @@ function StatsPage() {
                       <Trophy className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {statsData?.wins ?? 0}
+                      {statsData?.record?.win ?? 0}
                     </div>
                     <div className="text-sm text-muted-foreground">勝</div>
                   </div>
@@ -172,7 +178,7 @@ function StatsPage() {
                       <Minus className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                      {statsData?.draws ?? 0}
+                      {statsData?.record?.draw ?? 0}
                     </div>
                     <div className="text-sm text-muted-foreground">分</div>
                   </div>
@@ -182,7 +188,7 @@ function StatsPage() {
                       <X className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                      {statsData?.losses ?? 0}
+                      {statsData?.record?.loss ?? 0}
                     </div>
                     <div className="text-sm text-muted-foreground">敗</div>
                   </div>
@@ -192,16 +198,16 @@ function StatsPage() {
                       <HelpCircle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                      {statsData?.unknown ?? 0}
+                      {statsData?.record?.unknown ?? 0}
                     </div>
                     <div className="text-sm text-muted-foreground">未確定</div>
                   </div>
                 </div>
 
                 {(() => {
-                  const wins = statsData?.wins ?? 0;
-                  const draws = statsData?.draws ?? 0;
-                  const losses = statsData?.losses ?? 0;
+                  const wins = statsData?.record?.win ?? 0;
+                  const draws = statsData?.record?.draw ?? 0;
+                  const losses = statsData?.record?.loss ?? 0;
                   const total = wins + draws + losses;
                   if (total === 0) return null;
                   
