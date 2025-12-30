@@ -15,13 +15,26 @@
 - 試合詳細ページ + 観戦ログCRUD（tRPC + UI）
 - フィルタリング（期間/対戦相手/Home-Away）
 - **Stats 集計API（tRPC）**: `stats.getSummary`, `stats.getAvailableYears`
-- **Statsページ（UI）**: `/stats` - 年セレクト、観戦数/勝分敗/費用集計表示、Empty/Error UI
+  - GitHub Issue #1: matchesテーブルとJOINして勝敗判定（homeScore/awayScore + marinosSide）
+  - 出力形式: `{ period, watchCount, record: {win, draw, loss, unknown}, cost: {total, averagePerMatch} }`
+  - `calculateResult`関数で勝敗ロジックを分離
+  - ユニットテスト23件追加（0件/勝ち/負け/引き分け/unknown混在）
+- **Statsページ（UI）**: `/stats`
+  - GitHub Issue #2: 年セレクト、観戦数/勝分敗/費用集計表示
+  - Empty状態（0件時）、Error UI（再試行ボタン付き）
+  - DB接続エラー時のグレースフルフォールバック
+  - 円表示対応（¥84,200 / ¥12,029形式）
+- **マッチ詳細ページ**: `/matches/:id`
+  - 観戦費用記録（交通費/チケット代/飲食代/その他）
+  - LocalStorageで費用データを永続化
+  - スコア表示（過去試合のみ）
+  - 観戦ステータス管理（参加/不参加/未定）
 
 ### 🚧 In Progress / Needs Stabilization
 - スクレイピング精度の固定（公式サイトの構造変化に追従、JSON-LD優先）
 - "実データ" を用いた統合テストの整備（季節を跨ぐデータ・欠損耐性）
 
-### ⏳ Not Started (MVP Remaining)
+### ⏳ Not Started (Post-MVP)
 - 最終QA/最適化
 
 ---
@@ -35,8 +48,14 @@
 ---
 
 ## Release Checklist (MVP)
-- [x] Stats 集計API実装
-- [x] Statsページ（年セレクト、集計表示、Empty/Error UI）
-- [ ] 同期 → 一覧表示 → 詳細 → 観戦記録追加/編集/削除 → Stats表示 が一通り動く
+- [x] Stats 集計API実装（GitHub Issue #1）
+- [x] Statsページ UI実装（GitHub Issue #2）
+- [x] 同期 → 一覧表示 → 詳細 → 観戦記録追加/編集/削除 → Stats表示 が一通り動く
+- [x] テストが全て通る（`pnpm test` → 93件パス）
 - [ ] モバイル幅で主要画面が破綻しない
-- [ ] テストが全て通る（`pnpm test`）
+
+---
+
+## Completed GitHub Issues
+- [x] Issue #1: Stats集計バックエンド実装（2025-12-30）
+- [x] Issue #2: StatsページUI実装（2025-12-30）
