@@ -10,8 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { AlertCircle, Trophy, Minus, X, HelpCircle, Wallet, Calculator, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Trophy, Minus, X, HelpCircle, Wallet, Calculator } from "lucide-react";
+import { formatCurrency } from "@shared/formatters";
+import { QueryState } from "@/components/QueryState";
 
 function StatsPage() {
   const currentYear = new Date().getFullYear();
@@ -36,25 +37,6 @@ function StatsPage() {
 
   const isLoading = yearsLoading || statsLoading;
 
-  if (statsError) {
-    return (
-      <DashboardLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-            <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h2 className="text-xl font-semibold mb-2">エラーが発生しました</h2>
-            <p className="text-muted-foreground mb-4">
-              集計の取得に失敗しました
-            </p>
-            <Button onClick={() => refetchStats()} variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              再試行
-            </Button>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
@@ -86,31 +68,18 @@ function StatsPage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : statsData?.watchCount === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-            <div className="rounded-full bg-muted p-6 mb-4">
-              <Trophy className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">観戦記録がありません</h2>
-            <p className="text-muted-foreground max-w-md">
-              {selectedYear}年の観戦記録はまだありません。
-              試合に参戦したら、観戦ログを追加してみましょう。
-            </p>
-          </div>
-        ) : (
+        <QueryState
+          isLoading={isLoading}
+          isError={!!statsError}
+          isEmpty={statsData?.watchCount === 0}
+          onRetry={() => refetchStats()}
+          loadingMessage="集計を読み込み中..."
+          errorMessage="集計の取得に失敗しました"
+          emptyIcon={<Trophy className="h-12 w-12 text-muted-foreground" />}
+          emptyTitle="観戦記録がありません"
+          emptyMessage={`${selectedYear}年の観戦記録はまだありません。試合に参戦したら、観戦ログを追加してみましょう。`}
+          className="min-h-[400px]"
+        >
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card>
@@ -135,9 +104,8 @@ function StatsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    ¥{(statsData?.cost?.total ?? 0).toLocaleString()}
+                    {formatCurrency(statsData?.cost?.total)}
                   </div>
-                  <p className="text-sm text-muted-foreground">円</p>
                 </CardContent>
               </Card>
 
@@ -150,9 +118,9 @@ function StatsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    ¥{Math.round(statsData?.cost?.averagePerMatch ?? 0).toLocaleString()}
+                    {formatCurrency(Math.round(statsData?.cost?.averagePerMatch ?? 0))}
                   </div>
-                  <p className="text-sm text-muted-foreground">円/試合</p>
+                  <p className="text-sm text-muted-foreground">/試合</p>
                 </CardContent>
               </Card>
             </div>
@@ -236,7 +204,7 @@ function StatsPage() {
               </CardContent>
             </Card>
           </div>
-        )}
+        </QueryState>
       </div>
     </DashboardLayout>
   );

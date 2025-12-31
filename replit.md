@@ -40,6 +40,22 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2025-12-31: GitHub Issue #36, #37, #38, #39 完了 - リファクタリング
+  - Issue #36: 共通Formatter導入（formatCurrency, formatDateTime, formatWDL, formatScore, calcAverage）
+    - shared/formatters.ts に集約、20件のユニットテスト
+    - 全ページで統一表示（NaN/undefined表示なし）
+  - Issue #37: API DTO定義とNull安全性強化
+    - shared/dto.ts: MatchDTO, StatsSummaryDTO, toMatchDTO, createEmptyStatsSummary
+    - 7件のDTOテスト
+  - Issue #38: QueryState共通コンポーネント
+    - QueryLoading, QueryError, QueryEmpty, QueryState コンポーネント
+    - Stats.tsx, MatchDetail.tsx で使用
+  - Issue #39: MatchDetail View/Form分離
+    - MatchDetailView: 試合情報表示
+    - UserMatchForm: 費用入力フォーム
+    - shared/validation.ts: validateExpenseData, calculateTotalCost + 10件テスト
+  - 合計141テストパス
+
 - 2025-12-31: GitHub Issue #25 & #26 完了
   - Issue #25: LP文言全面見直し
     - 「マリノスサポーター」表現を完全削除

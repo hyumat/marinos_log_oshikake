@@ -8,6 +8,7 @@ import { Loader2, Plus, RefreshCw, MapPin, Calendar, Clock, Check, X } from 'luc
 import { trpc } from '@/lib/trpc';
 import { MatchFilter, type FilterState } from '@/components/MatchFilter';
 import { toast } from 'sonner';
+import { formatDateTime, formatScore } from '@shared/formatters';
 
 type AttendanceStatus = 'undecided' | 'attending' | 'not-attending';
 
@@ -170,26 +171,6 @@ export default function Matches() {
     });
   };
 
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr + 'T00:00:00');
-      return date.toLocaleDateString('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const formatScore = (match: Match) => {
-    if (match.homeScore !== undefined && match.homeScore !== null && 
-        match.awayScore !== undefined && match.awayScore !== null) {
-      return `${match.homeScore}-${match.awayScore}`;
-    }
-    return 'vs';
-  };
 
   const getVenueInfo = (marinosSide?: string) => {
     if (marinosSide === 'home') return { label: 'HOME', color: 'bg-blue-600 text-white' };
@@ -361,7 +342,7 @@ export default function Matches() {
                               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                                 <span className="flex items-center gap-0.5">
                                   <Calendar className="h-3 w-3" />
-                                  {formatDate(match.date)}
+                                  {formatDateTime(match.date, 'short')}
                                 </span>
                                 {match.kickoff && (
                                   <span className="flex items-center gap-0.5">
@@ -566,7 +547,7 @@ export default function Matches() {
                               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                                 <span className="flex items-center gap-0.5">
                                   <Calendar className="h-3 w-3" />
-                                  {formatDate(match.date)}
+                                  {formatDateTime(match.date, 'short')}
                                 </span>
                                 {match.stadium && mapsUrl && (
                                   <a 
@@ -588,7 +569,7 @@ export default function Matches() {
                                 </span>
                               )}
                               <div className="text-lg font-bold w-12 text-center">
-                                {formatScore(match)}
+                                {formatScore(match.homeScore, match.awayScore)}
                               </div>
                               {(() => {
                                 const status = getAttendanceStatus(match.id);
