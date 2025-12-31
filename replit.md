@@ -40,6 +40,11 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2025-12-31: GitHub Issue #12 完了 - LP開発用語削除・日本語改善
+  - JSON-LD/フォールバック/MVP/PWA/Mobile-first/MD等の開発用語を削除
+  - FAQ/ロードマップをユーザー向け日本語に書き換え
+  - ヘッダーは独自ロゴ「お」で偽エンブレム問題なし
+
 - 2025-12-31: LSPエラー修正・OAuth警告レベル変更
   - scraper.tsから6つのユーティリティ関数をエクスポート
   - scraper.test.tsで実際の関数をインポートしてテスト（インライン実装を削除）
