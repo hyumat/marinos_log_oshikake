@@ -1,664 +1,495 @@
-import { useMemo, useState } from "react";
-import step1Image from "@assets/generated_images/match_list_english_screenshot.png";
-import step2Image from "@assets/generated_images/match_log_form_english_screenshot.png";
-import step3Image from "@assets/generated_images/stats_dashboard_english_screenshot.png";
+import { useState, useRef, useEffect } from "react";
 
-/**
- * LP: おしかけログ
- * 観戦記録サービス
- * トリコロールカラー（青・白・赤）を控えめに使用
- */
 export default function LandingPageOshikakeLog() {
   const [year, setYear] = useState<number>(2025);
-  const [activeFaq, setActiveFaq] = useState<number | null>(0);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
-  const statsPreview = useMemo(() => {
-    const presets: Record<number, { watch: number; win: number; draw: number; loss: number; unknown: number; total: number }> =
-      {
-        2024: { watch: 6, win: 2, draw: 2, loss: 2, unknown: 0, total: 71200 },
-        2025: { watch: 7, win: 3, draw: 2, loss: 1, unknown: 1, total: 84200 },
-        2026: { watch: 1, win: 0, draw: 0, loss: 0, unknown: 1, total: 9800 },
-      };
-    const p = presets[year] ?? presets[2025];
-    const avg = p.watch > 0 ? Math.round(p.total / p.watch) : 0;
-    return { ...p, avg };
-  }, [year]);
+  const statsPreview = {
+    2024: { watch: 6, win: 2, draw: 2, loss: 2, unknown: 0, total: 71200 },
+    2025: { watch: 7, win: 3, draw: 2, loss: 1, unknown: 1, total: 84200 },
+    2026: { watch: 1, win: 0, draw: 0, loss: 0, unknown: 1, total: 9800 },
+  }[year] ?? { watch: 7, win: 3, draw: 2, loss: 1, unknown: 1, total: 84200 };
+
+  const avg = statsPreview.watch > 0 ? Math.round(statsPreview.total / statsPreview.watch) : 0;
 
   const faq = [
     {
-      q: "試合データが取れないことはありますか？",
-      a: "まれにあります。サイトの構造が変わっても、できるだけ壊れにくい仕組みを採用しています。万が一取り込みに失敗しても、記録は残るのでアプリが止まることはありません。",
+      q: "費用はどんな項目で記録できますか？",
+      a: "交通費／チケット代／飲食代／その他の4カテゴリで記録できます。",
     },
     {
-      q: "オフラインでも見られますか？",
-      a: "過去のデータは保存されるため、閲覧は可能です（新しい試合の取り込みはオンライン時に行います）。今後、スマホアプリのような体験も拡張予定です。",
+      q: "過去シーズンも見返せますか？",
+      a: "年度の切り替えに対応しています。",
     },
     {
-      q: "費用は何を記録できますか？",
-      a: "現在は「費用合計（交通・チケット・飲食などをまとめて）」とメモを記録できます。今後、カテゴリ別の内訳（交通/チケット/飲食…）にも対応予定です。",
-    },
-    {
-      q: "マリノス以外のチームにも使えますか？",
-      a: "現時点では横浜F・マリノスを前提に最適化しています。将来的に他チームへの対応も検討中です。",
+      q: "試合結果・試合予定はどこで見られますか？",
+      a: "試合一覧／試合詳細で確認できます。",
     },
   ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Background accents - Tricolore subtle */}
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
-        <div className="absolute top-28 -right-24 h-80 w-80 rounded-full bg-red-200/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-blue-100/30 blur-3xl" />
+        <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="absolute top-40 -right-24 h-64 w-64 rounded-full bg-red-100/20 blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-blue-50/50 blur-3xl" />
       </div>
 
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-sm">
               <span className="text-sm font-bold">お</span>
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-blue-900">おしかけログ</div>
-              <div className="text-xs text-slate-500">観戦記録サービス</div>
+              <div className="text-[11px] text-slate-500">観戦記録サービス</div>
             </div>
           </div>
 
           <nav className="hidden items-center gap-6 md:flex">
-            <a href="#features" className="text-sm text-slate-600 hover:text-blue-700">
-              機能
-            </a>
-            <a href="#how" className="text-sm text-slate-600 hover:text-blue-700">
-              使い方
-            </a>
-            <a href="#stats" className="text-sm text-slate-600 hover:text-blue-700">
-              集計
-            </a>
-            <a href="#roadmap" className="text-sm text-slate-600 hover:text-blue-700">
-              ロードマップ
-            </a>
-            <a href="#faq" className="text-sm text-slate-600 hover:text-blue-700">
-              FAQ
-            </a>
+            <a href="#pain" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">悩み</a>
+            <a href="#solution" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">できること</a>
+            <a href="#how" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">使い方</a>
+            <a href="#stats" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">集計</a>
+            <a href="#faq" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-2">
-            <a
-              href="/app"
-              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-800"
-            >
-              使ってみる
-            </a>
-          </div>
+          <a
+            href="/app"
+            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-800 transition-all"
+          >
+            今すぐ始める
+          </a>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-12 md:pb-16 md:pt-16">
-        <div className="grid items-center gap-10 md:grid-cols-2">
+      <section className="mx-auto max-w-5xl px-4 pt-16 pb-12 md:pt-24 md:pb-16">
+        <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3 py-1 text-xs font-medium text-blue-800 shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
-              観戦記録をもっと簡単に
-            </div>
-
-            <h1 className="mt-5 text-3xl font-bold tracking-tight md:text-5xl">
-              <span className="text-blue-700">おしかけ</span>の記録を、
-              <br />
-              <span className="text-slate-900">ちゃんと残す。</span>
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl leading-tight">
+              観戦の記録と、<br />
+              観戦にかかった費用を<br />
+              <span className="text-blue-700">"ちゃんと残す"。</span>
             </h1>
 
-            <p className="mt-4 text-base leading-relaxed text-slate-600 md:text-lg">
-              観戦した試合のメモと費用をまとめて管理。
-              今季の観戦数や勝敗、支出の合計までひと目で振り返れます。
+            <p className="mt-6 text-base leading-relaxed text-slate-600 md:text-lg">
+              観戦した試合のメモや費用をまとめて残し、あとから見返しやすく整理できます。
+            </p>
+            <p className="mt-2 text-base leading-relaxed text-slate-600 md:text-lg">
+              試合結果・試合予定も同じ場所で確認できるので、記録が散らばりません。
             </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href="/app"
-                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-800"
+                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3.5 text-sm font-semibold text-white shadow-md hover:from-blue-700 hover:to-blue-800 transition-all"
               >
                 今すぐ始める
               </a>
               <a
                 href="#how"
-                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 transition-all"
               >
                 使い方を見る
               </a>
             </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <MiniStat label="観戦ログ" value="試合に紐付け" accent="blue" />
-              <MiniStat label="費用" value="合計・平均" accent="white" />
-              <MiniStat label="集計" value="勝分敗" accent="red" />
-            </div>
-
-            <p className="mt-4 text-xs text-slate-500">
-              ※観戦ログ・費用はあなたのデータベースに保存されます。
-            </p>
           </div>
 
-          {/* Hero visual */}
           <div className="relative">
-            <div className="rounded-3xl border border-blue-100 bg-white/90 p-4 shadow-lg backdrop-blur">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-blue-900">今季の集計（例）</div>
-                <div className="text-xs text-slate-500">2025</div>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <KpiCard title="観戦試合数" value={`${statsPreview.watch} 試合`} sub="観戦ログの登録数" />
-                <KpiCard
-                  title="戦績"
-                  value={`${statsPreview.win}勝 ${statsPreview.draw}分 ${statsPreview.loss}敗`}
-                  sub={`未確定 ${statsPreview.unknown}`}
-                />
-                <KpiCard title="費用合計" value={`¥${statsPreview.total.toLocaleString()}`} sub="交通・チケット・飲食など" />
-                <KpiCard
-                  title="平均/試合"
-                  value={`¥${statsPreview.avg.toLocaleString()}`}
-                  sub="合計 / 観戦試合数"
-                />
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold">最新の観戦ログ（例）</div>
-                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">登録済</span>
-                </div>
-                <div className="mt-3 text-sm text-slate-700">
-                  <div className="font-medium">明治安田J1 第1節</div>
-                  <div className="mt-1 text-slate-500">2025/02/15 14:03 ・ 日産スタジアム</div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <div className="font-semibold">横浜FM 2 - 1 ○○○</div>
-                    <div className="text-slate-700">¥12,400</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-blue-700 to-blue-800 px-4 py-3 text-white">
-                <div className="text-sm">
-                  <div className="font-semibold">観戦記録を、もっと簡単に。</div>
-                  <div className="text-xs text-white/70">試合を選んで、費用とメモを入力するだけ</div>
-                </div>
-                <div className="hidden text-xs text-white/70 sm:block">スマホ対応</div>
-              </div>
-            </div>
-
-            <div className="absolute -bottom-6 -left-6 hidden h-24 w-24 rounded-3xl bg-blue-500/10 blur-2xl md:block" />
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          <SectionHeader
-            eyebrow="課題"
-            title="観戦の記録、散らばってませんか？"
-            desc="メモ・SNS・家計簿に分散した情報を、試合ごとにまとめて一箇所へ。"
-          />
-          <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
-            <FeatureCard
-              title="記録が散らばる"
-              desc="どの試合を観たか、いつ・どこで・何が起きたかが追いにくい。"
-              icon="🗂️"
-            />
-            <FeatureCard
-              title="出費が見えない"
-              desc="交通費・チケット・飲食…今季いくら使ったか分からない。"
-              icon="💸"
-            />
-            <FeatureCard
-              title="振り返りが大変"
-              desc="今季の勝敗やアウェイ成績をまとめて見たい。"
-              icon="📈"
-            />
-            <FeatureCard
-              title="入力が面倒"
-              desc="試合ごとに情報を書くのが手間で続かない。"
-              icon="🧾"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          <SectionHeader
-            eyebrow="解決"
-            title="続けられる観戦ログ"
-            desc="試合ごとに『観た』記録を残すだけ。あとから、観戦の思い出と支出をまとめて振り返れます。"
-          />
-          <div className="md:col-span-2 grid gap-4">
-            <BigFeature
-              title="① 試合情報を手間なく取得"
-              desc="試合日程・会場・結果を自動で取り込み、記録の土台をつくります。自分で入力しなくても手間が少ない。"
-              bullets={["大会名・節（第○節など）を整理", "会場・対戦カード・結果を見やすく", "取り込みに失敗しても安心"]}
-            />
-            <BigFeature
-              title="② 観戦した試合だけ記録"
-              desc="試合詳細から、観戦日時・費用・メモを保存。編集・削除も簡単。"
-              bullets={["いつ観戦したか", "いくらかかったか", "思い出メモ"]}
-            />
-            <BigFeature
-              title="③ 戦績と費用を自動集計"
-              desc="観戦ログから、勝分敗と支出を期間別に集計。"
-              bullets={["観戦試合数", "勝・分・敗・未確定", "費用合計 / 平均（次で内訳も）"]}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* How to with Images */}
-      <section id="how" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50/50 to-white p-6 shadow-sm md:p-10">
-          <div className="text-center mb-8">
-            <div className="text-xs font-semibold uppercase tracking-wider text-blue-600">使い方</div>
-            <h2 className="mt-2 text-2xl font-bold md:text-3xl">3ステップで完了</h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600 max-w-xl mx-auto">
-              "同期→記録→集計"の流れだけ。観戦のたびに、資産が積み上がります。
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            <StepCardWithImage
-              step="1"
-              title="試合一覧から選ぶ"
-              desc="試合データを同期し、観戦した試合を選択"
-              image={step1Image}
-              color="blue"
-            />
-            <StepCardWithImage
-              step="2"
-              title="費用とメモを記録"
-              desc="交通費・チケット代などを入力して観戦ログを保存"
-              image={step2Image}
-              color="red"
-            />
-            <StepCardWithImage
-              step="3"
-              title="集計を確認"
-              desc="勝敗と費用を年別に集計して振り返る"
-              image={step3Image}
-              color="blue"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Stats preview */}
-      <section id="stats" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          <SectionHeader
-            eyebrow="集計"
-            title="今季の『観戦』が、数字で見える"
-            desc="勝敗と支出が一目で分かると、次の観戦計画も立てやすい。"
-          />
-          <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur md:p-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-sm font-semibold">集計プレビュー</div>
-                <div className="text-xs text-slate-500">※デモ表示（実装後はあなたのデータが入ります）</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-600">年</span>
-                <select
-                  value={year}
-                  onChange={(e) => setYear(Number(e.target.value))}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value={2024}>2024</option>
-                  <option value={2025}>2025</option>
-                  <option value={2026}>2026</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <Metric title="観戦試合数" value={`${statsPreview.watch}`} suffix="試合" hint="観戦ログに登録した試合" />
-              <Metric
-                title="戦績"
-                value={`${statsPreview.win}-${statsPreview.draw}-${statsPreview.loss}`}
-                suffix=""
-                hint={`勝-分-敗（未確定 ${statsPreview.unknown}）`}
+            <FadeInSection>
+              <img
+                src="/lp/lp-hero.png"
+                alt="観戦の記録と費用をまとめて残せるイメージ"
+                className="rounded-3xl shadow-xl w-full"
+                width={600}
+                height={338}
+                loading="eager"
               />
-              <Metric title="費用合計" value={`¥${statsPreview.total.toLocaleString()}`} suffix="" hint="交通・チケット・飲食などの合計" />
-              <Metric title="平均/試合" value={`¥${statsPreview.avg.toLocaleString()}`} suffix="" hint="費用合計 / 観戦試合数" />
-            </div>
-
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="text-sm font-semibold">次の拡張（V2以降）</div>
-              <div className="mt-2 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 px-3 py-2">費用内訳（交通/チケット/飲食…）</div>
-                <div className="rounded-xl bg-slate-50 px-3 py-2">月別支出・勝率推移グラフ</div>
-                <div className="rounded-xl bg-slate-50 px-3 py-2">スタジアム別の回数/費用</div>
-                <div className="rounded-xl bg-slate-50 px-3 py-2">対戦相手別の戦績</div>
-              </div>
-            </div>
+            </FadeInSection>
           </div>
         </div>
       </section>
 
-      {/* Roadmap */}
-      <section id="roadmap" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur md:p-10">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">ロードマップ</div>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">今後の予定</h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                まず「記録と集計ができる」状態を完成させ、その後に内訳や可視化を追加していきます。
+      <section id="pain" className="bg-slate-50/80 py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <FadeInSection>
+            <div className="text-center mb-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">共感</div>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">こんな悩み、ありませんか？</h2>
+            </div>
+          </FadeInSection>
+
+          <div className="grid gap-8 md:grid-cols-2 items-center">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FadeInSection delay={0}>
+                <PainCard icon="📱" text="観戦メモがSNS・メモアプリ・写真フォルダに散らばって探せない" />
+              </FadeInSection>
+              <FadeInSection delay={100}>
+                <PainCard icon="💸" text="チケット代や交通費、飲食代など、結局いくら使ったか分からなくなる" />
+              </FadeInSection>
+              <FadeInSection delay={200}>
+                <PainCard icon="🔍" text="試合結果・試合予定を確認するために、毎回別のサイトを開いてしまう" />
+              </FadeInSection>
+              <FadeInSection delay={300}>
+                <PainCard icon="📅" text="シーズンが終わったあと、どの試合を観に行ったか思い出せない" />
+              </FadeInSection>
+            </div>
+            <FadeInSection delay={400}>
+              <img
+                src="/lp/lp-pain.png"
+                alt="記録が散らばりやすい状況のイメージ"
+                className="rounded-2xl shadow-lg w-full max-w-md mx-auto"
+                width={400}
+                height={300}
+                loading="lazy"
+              />
+            </FadeInSection>
+          </div>
+        </div>
+      </section>
+
+      <section id="solution" className="py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <FadeInSection>
+            <div className="text-center mb-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-blue-600">解決</div>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">おしかけログでできること</h2>
+            </div>
+          </FadeInSection>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <FadeInSection delay={0}>
+              <SolutionCard
+                icon="📝"
+                title="観戦の記録"
+                desc="試合ごとに「観戦日」とメモを残せます。"
+              />
+            </FadeInSection>
+            <FadeInSection delay={100}>
+              <SolutionCard
+                icon="💰"
+                title="観戦費用の記録"
+                desc="交通費／チケット代／飲食代／その他で費用を記録できます。"
+              />
+            </FadeInSection>
+            <FadeInSection delay={200}>
+              <SolutionCard
+                icon="📊"
+                title="試合結果・試合予定の閲覧"
+                desc="試合一覧と試合詳細で、予定/結果を同じ場所で確認できます。"
+              />
+            </FadeInSection>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" className="bg-gradient-to-br from-blue-50/60 to-white py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <FadeInSection>
+            <div className="text-center mb-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-blue-600">使い方</div>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">3ステップで完了</h2>
+            </div>
+          </FadeInSection>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <FadeInSection delay={0}>
+              <StepCardWithImage step="1" title="試合一覧から対象の試合を開く" image="/lp/lp-step-1.png" />
+            </FadeInSection>
+            <FadeInSection delay={100}>
+              <StepCardWithImage step="2" title="観戦の記録（観戦日・メモ）を残す" image="/lp/lp-step-2.png" />
+            </FadeInSection>
+            <FadeInSection delay={200}>
+              <StepCardWithImage step="3" title="費用（交通費・チケット・飲食・その他）を入力して保存" image="/lp/lp-step-3.png" />
+            </FadeInSection>
+          </div>
+        </div>
+      </section>
+
+      <section id="stats" className="py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <FadeInSection>
+            <div className="text-center mb-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">集計</div>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">見返し（集計）</h2>
+              <p className="mt-3 text-sm text-slate-600 max-w-xl mx-auto">
+                観戦数、勝敗、費用の合計・平均などをシーズン単位で見返せます。年度の切り替えにも対応しています。
               </p>
             </div>
+          </FadeInSection>
 
-            <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
-              <RoadmapCard
-                tag="今"
-                title="基本機能を完成"
-                items={[
-                  "観戦数・勝敗・費用の集計",
-                  "年別フィルタ",
-                  "エラー時も安心な表示",
-                ]}
-                tagColor="blue"
+          <div className="grid gap-8 md:grid-cols-2 items-center max-w-4xl mx-auto">
+            <FadeInSection>
+              <img
+                src="/lp/lp-stats.png"
+                alt="今季の振り返りイメージ"
+                className="rounded-2xl shadow-lg w-full"
+                width={400}
+                height={300}
+                loading="lazy"
               />
-              <RoadmapCard
-                tag="次"
-                title="『振り返り』を強化"
-                items={[
-                  "費用内訳（交通/チケット/飲食…）",
-                  "グラフ・チャートで可視化",
-                  "スタジアム別・相手別の集計",
-                ]}
-                tagColor="red"
-              />
+            </FadeInSection>
+
+            <FadeInSection delay={100}>
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                  <div className="text-sm font-semibold">集計プレビュー</div>
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-blue-500/20"
+                  >
+                    <option value={2024}>2024</option>
+                    <option value={2025}>2025</option>
+                    <option value={2026}>2026</option>
+                  </select>
+                </div>
+
+                <div className="grid gap-4 grid-cols-2">
+                  <StatCard label="観戦数" value={`${statsPreview.watch}`} unit="試合" />
+                  <StatCard label="勝分敗" value={`${statsPreview.win}-${statsPreview.draw}-${statsPreview.loss}`} unit="" hint={statsPreview.unknown > 0 ? `未確定 ${statsPreview.unknown}` : undefined} />
+                  <StatCard label="費用（合計）" value={`¥${statsPreview.total.toLocaleString()}`} unit="" />
+                  <StatCard label="費用（平均）" value={`¥${avg.toLocaleString()}`} unit="" />
+                </div>
+              </div>
+            </FadeInSection>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap" className="bg-slate-50/80 py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <div className="grid gap-8 md:grid-cols-2 items-center max-w-4xl mx-auto">
+            <div>
+              <FadeInSection>
+                <div className="mb-8">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">期待</div>
+                  <h2 className="mt-2 text-2xl font-bold md:text-3xl">今後のロードマップ</h2>
+                </div>
+              </FadeInSection>
+
+              <div className="space-y-4">
+                <FadeInSection delay={0}>
+                  <RoadmapItem label="短期" text="費用内訳、月別推移、グラフ表示" />
+                </FadeInSection>
+                <FadeInSection delay={100}>
+                  <RoadmapItem label="中期" text="CSVエクスポート、共有、オフライン対応" />
+                </FadeInSection>
+                <FadeInSection delay={200}>
+                  <RoadmapItem label="長期" text="モバイルアプリ化、複数ユーザー、SNS連携" />
+                </FadeInSection>
+              </div>
             </div>
+
+            <FadeInSection delay={300}>
+              <img
+                src="/lp/lp-future.png"
+                alt="見返しが楽しくなるイメージ"
+                className="rounded-2xl shadow-lg w-full"
+                width={400}
+                height={300}
+                loading="lazy"
+              />
+            </FadeInSection>
           </div>
         </div>
       </section>
 
-      {/* Privacy */}
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          <SectionHeader
-            eyebrow="データ"
-            title="プライバシーと運用"
-            desc="観戦ログと費用はあなたのデータ。公式情報は公開情報を参照します。"
-          />
-          <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
-            <InfoCard
-              title="データ保存"
-              desc="観戦ログ・費用はDBに保存。アプリ側は『見せる』役に徹します。"
-              icon="🔐"
-            />
-            <InfoCard
-              title="同期の安全性"
-              desc="取得失敗時も落ちずにログへ記録。原因追跡ができます。"
-              icon="🧰"
-            />
-            <InfoCard
-              title="試合情報"
-              desc="試合情報を自動で取り込みます。サイトが変わっても壊れにくい仕組みです。"
-              icon="🧾"
-            />
-            <InfoCard
-              title="スマホ対応"
-              desc="スマホで『サッと記録』。アプリのような体験も今後拡張予定です。"
-              icon="📱"
-            />
-          </div>
-        </div>
-      </section>
+      <section id="faq" className="py-16 md:py-20">
+        <div className="mx-auto max-w-3xl px-4">
+          <FadeInSection>
+            <div className="text-center mb-10">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">FAQ</div>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">よくある質問</h2>
+            </div>
+          </FadeInSection>
 
-      {/* FAQ */}
-      <section id="faq" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          <SectionHeader eyebrow="FAQ" title="よくある質問" desc="導入前の不安を解消します。" />
-          <div className="md:col-span-2 space-y-3">
+          <div className="space-y-3">
             {faq.map((item, idx) => {
               const open = activeFaq === idx;
               return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveFaq(open ? null : idx)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white/80 p-4 text-left shadow-sm backdrop-blur hover:bg-white"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-sm font-semibold">{item.q}</div>
-                      <div
-                        className={[
-                          "mt-2 text-sm leading-relaxed text-slate-600 transition-all duration-200",
-                          open ? "max-h-96 opacity-100" : "max-h-0 overflow-hidden opacity-0",
-                        ].join(" ")}
-                      >
-                        {item.a}
+                <FadeInSection key={idx} delay={idx * 50}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFaq(open ? null : idx)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold">{item.q}</div>
+                        <div
+                          className={[
+                            "mt-2 text-sm leading-relaxed text-slate-600 transition-all duration-200",
+                            open ? "max-h-96 opacity-100" : "max-h-0 overflow-hidden opacity-0",
+                          ].join(" ")}
+                        >
+                          {item.a}
+                        </div>
+                      </div>
+                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700 transition-transform" style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}>
+                        <span className="text-sm">+</span>
                       </div>
                     </div>
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                      <span className="text-sm">{open ? "−" : "+"}</span>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                </FadeInSection>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 pt-6 md:pb-20">
-        <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-800 p-8 text-white shadow-lg md:p-12">
-          <div className="grid gap-8 md:grid-cols-2 md:items-center">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-white/70">Ready?</div>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">今季の観戦を、ちゃんと残そう。</h2>
-              <p className="mt-3 text-sm leading-relaxed text-white/75">
-                試合ごとに記録するから、あとで振り返りやすい。費用と結果を集計して、観戦の"履歴"を資産に。
-              </p>
+      <section className="py-16 md:py-20">
+        <div className="mx-auto max-w-5xl px-4">
+          <FadeInSection>
+            <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-800 p-8 text-white shadow-xl md:p-12">
+              <div className="text-center max-w-2xl mx-auto">
+                <h2 className="text-2xl font-bold md:text-3xl">今季の観戦を、あとから気持ちよく見返そう。</h2>
+                <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
+                  観戦の記録と費用をまとめて残し、試合結果・試合予定も同じ場所で確認できます。
+                </p>
+                <div className="mt-8">
+                  <a
+                    href="/app"
+                    className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-blue-800 shadow-md hover:bg-slate-50 transition-all"
+                  >
+                    今すぐ始める
+                  </a>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <a
-                href="/app"
-                className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-blue-800 shadow-sm hover:bg-slate-50"
-              >
-                使ってみる
-              </a>
-            </div>
-          </div>
+          </FadeInSection>
         </div>
+      </section>
 
-        <footer className="mt-10 flex flex-col items-center justify-between gap-3 text-xs text-slate-500 sm:flex-row">
+      <footer className="border-t border-slate-100 py-8">
+        <div className="mx-auto max-w-5xl px-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2">
             <span className="text-blue-600 font-semibold">おしかけログ</span>
-            <span>© {new Date().getFullYear()}</span>
+            <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
           </div>
-          <div className="flex gap-4">
-            <a href="#features" className="hover:text-blue-700">
-              機能
-            </a>
-            <a href="#how" className="hover:text-blue-700">
-              使い方
-            </a>
-            <a href="#faq" className="hover:text-blue-700">
-              FAQ
-            </a>
+          <div className="flex gap-4 text-sm text-slate-500">
+            <a href="#solution" className="hover:text-blue-700 transition-colors">機能</a>
+            <a href="#how" className="hover:text-blue-700 transition-colors">使い方</a>
+            <a href="#faq" className="hover:text-blue-700 transition-colors">FAQ</a>
           </div>
-        </footer>
-      </section>
-    </div>
-  );
-}
-
-/* ---------- UI Parts ---------- */
-
-function MiniStat({ label, value, accent }: { label: string; value: string; accent: "blue" | "white" | "red" }) {
-  const accentColors = {
-    blue: "border-blue-200 bg-blue-50/80",
-    white: "border-slate-200 bg-white/80",
-    red: "border-red-100 bg-red-50/50",
-  };
-  return (
-    <div className={`rounded-2xl border ${accentColors[accent]} px-4 py-3 shadow-sm backdrop-blur`}>
-      <div className="text-xs font-medium text-slate-500">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-slate-900">{value}</div>
-    </div>
-  );
-}
-
-function KpiCard({ title, value, sub }: { title: string; value: string; sub: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="text-xs font-medium text-slate-500">{title}</div>
-      <div className="mt-2 text-xl font-bold">{value}</div>
-      <div className="mt-1 text-xs text-slate-500">{sub}</div>
-    </div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, desc }: { eyebrow: string; title: string; desc: string }) {
-  return (
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-wider text-blue-600">{eyebrow}</div>
-      <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">{title}</h2>
-      <p className="mt-3 text-sm leading-relaxed text-slate-600">{desc}</p>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur">
-      <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-          <span className="text-base">{icon}</span>
         </div>
-        <div>
-          <div className="text-sm font-semibold">{title}</div>
-          <div className="mt-1 text-sm leading-relaxed text-slate-600">{desc}</div>
-        </div>
+      </footer>
+    </div>
+  );
+}
+
+function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="transition-all duration-700 ease-out"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+        transitionDelay: `${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function KpiCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 text-center">
+      <div className="text-xs text-slate-500">{title}</div>
+      <div className="mt-1 text-lg font-bold text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+function PainCard({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow h-full">
+      <div className="text-2xl mb-3">{icon}</div>
+      <p className="text-sm text-slate-700 leading-relaxed">{text}</p>
+    </div>
+  );
+}
+
+function SolutionCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+      <div className="text-3xl mb-4">{icon}</div>
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm text-slate-600 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function StepCard({ step, title }: { step: string; title: string }) {
+  return (
+    <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow text-center">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg mb-4">
+        {step}
       </div>
+      <p className="text-sm font-medium text-slate-800">{title}</p>
     </div>
   );
 }
 
-function BigFeature({
-  title,
-  desc,
-  bullets,
-}: {
-  title: string;
-  desc: string;
-  bullets: string[];
-}) {
+function StepCardWithImage({ step, title, image }: { step: string; title: string; image: string }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur md:p-7">
-      <div className="text-base font-bold">{title}</div>
-      <div className="mt-2 text-sm leading-relaxed text-slate-600">{desc}</div>
-      <ul className="mt-4 space-y-2 text-sm text-slate-700">
-        {bullets.map((b, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-0.5 inline-block h-5 w-5 rounded-full bg-blue-100 text-center text-xs leading-5 text-blue-700">
-              ✓
-            </span>
-            <span>{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function StepCardWithImage({ 
-  step, 
-  title, 
-  desc, 
-  image,
-  color 
-}: { 
-  step: string; 
-  title: string; 
-  desc: string; 
-  image: string;
-  color: "blue" | "red";
-}) {
-  const bgColor = color === "blue" ? "bg-blue-600" : "bg-red-600";
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`grid h-9 w-9 place-items-center rounded-2xl ${bgColor} text-white`}>
-          <span className="text-sm font-semibold">{step}</span>
-        </div>
-        <div>
-          <div className="text-sm font-semibold">{title}</div>
-          <div className="text-xs text-slate-500">{desc}</div>
-        </div>
-      </div>
-      <div className="rounded-2xl overflow-hidden border border-slate-100 bg-slate-50">
-        <img 
-          src={image} 
-          alt={title} 
-          className="w-full h-auto object-cover"
-          style={{ maxHeight: "300px" }}
+    <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+      <div className="aspect-[3/4] rounded-xl overflow-hidden bg-slate-50 mb-4">
+        <img
+          src={image}
+          alt={`使い方のイメージ（ステップ${step}）`}
+          className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
-    </div>
-  );
-}
-
-function Metric({ title, value, suffix, hint }: { title: string; value: string; suffix: string; hint: string }) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5">
-      <div className="text-xs font-medium text-slate-500">{title}</div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <div className="text-2xl font-bold">{value}</div>
-        {suffix ? <div className="text-sm font-semibold text-slate-500">{suffix}</div> : null}
-      </div>
-      <div className="mt-2 text-xs text-slate-500">{hint}</div>
-    </div>
-  );
-}
-
-function RoadmapCard({ tag, title, items, tagColor }: { tag: string; title: string; items: string[]; tagColor: "blue" | "red" }) {
-  const bgColor = tagColor === "blue" ? "bg-blue-600" : "bg-red-600";
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className={`rounded-full ${bgColor} px-2 py-1 text-xs font-semibold text-white`}>{tag}</span>
-        <span className="text-xs text-slate-500">Roadmap</span>
-      </div>
-      <div className="mt-3 text-base font-bold">{title}</div>
-      <ul className="mt-4 space-y-2 text-sm text-slate-700">
-        {items.map((it, idx) => (
-          <li key={idx} className="flex items-start gap-2">
-            <span className="mt-0.5 inline-block h-5 w-5 rounded-full bg-blue-50 text-center text-xs leading-5 text-blue-700">
-              →
-            </span>
-            <span>{it}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function InfoCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur">
-      <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-          <span className="text-base">{icon}</span>
+      <div className="text-center">
+        <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm mb-2">
+          {step}
         </div>
-        <div>
-          <div className="text-sm font-semibold">{title}</div>
-          <div className="mt-1 text-sm leading-relaxed text-slate-600">{desc}</div>
-        </div>
+        <p className="text-sm font-medium text-slate-800">{title}</p>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, unit, hint }: { label: string; value: string; unit: string; hint?: string }) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-center">
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="mt-1 text-xl font-bold text-slate-900">
+        {value}
+        {unit && <span className="text-sm font-normal text-slate-600 ml-1">{unit}</span>}
+      </div>
+      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
+    </div>
+  );
+}
+
+function RoadmapItem({ label, text }: { label: string; text: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">{label}</div>
+      <p className="text-sm text-slate-700">{text}</p>
     </div>
   );
 }

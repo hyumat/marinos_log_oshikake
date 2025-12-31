@@ -40,6 +40,27 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2025-12-31: GitHub Issue #34, #35, #40, #41, #42, #43 完了 - LP全面刷新
+  - Issue #40: LP文言を確定稿に全面差し替え
+    - Hero: 「観戦の記録と、観戦にかかった費用を"ちゃんと残す"。」
+    - 共感→危機→解決→期待の心理導線
+    - FAQ 3問に整理
+  - Issue #35: alt/meta/OGP監査
+    - index.htmlにmeta description, OGPタグを追加
+    - 禁止語ゼロ確認
+  - Issue #41: デザイン刷新（Land-book級）
+    - FadeInSectionによるスクロールアニメーション
+    - 控えめトリコロール（青メイン、赤アクセント最小）
+    - 8pt系余白ルール適用
+  - Issue #42: LP画像7点を作成・実装
+    - lp-hero.png, lp-pain.png, lp-step-1/2/3.png, lp-stats.png, lp-future.png
+    - 画像内テキストなし
+    - client/public/lp/に配置
+  - Issue #43: アイコン導入
+    - favicon-16x16.png, favicon-32x32.png, apple-touch-icon.png
+    - icons/icon-192.png, icon-512.png, maskable-icon-512.png, og-image.png
+    - manifest.webmanifest作成
+
 - 2025-12-31: GitHub Issue #36, #37, #38, #39 完了 - リファクタリング
   - Issue #36: 共通Formatter導入（formatCurrency, formatDateTime, formatWDL, formatScore, calcAverage）
     - shared/formatters.ts に集約、20件のユニットテスト

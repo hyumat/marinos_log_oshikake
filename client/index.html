@@ -1,16 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Marinos Away Log V2</title>
+    <title>おしかけログ - 観戦の記録と費用をまとめて残す</title>
+    <meta name="description" content="観戦した試合のメモや費用をまとめて残し、あとから見返しやすく整理できます。試合結果・試合予定も同じ場所で確認できます。" />
+
+    <meta property="og:title" content="おしかけログ - 観戦の記録と費用をまとめて残す" />
+    <meta property="og:description" content="観戦した試合のメモや費用をまとめて残し、あとから見返しやすく整理できます。試合結果・試合予定も同じ場所で確認できます。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icons/og-image.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="おしかけログ - 観戦の記録と費用をまとめて残す" />
+    <meta name="twitter:description" content="観戦した試合のメモや費用をまとめて残し、試合結果・試合予定も同じ場所で確認できます。" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#1d4ed8" />
   </head>
 
   <body>
-    <!-- GitHub Pages SPA redirect decode -->
     <script>
       (function (l) {
-        // /?/<path> 形式を元のパスに戻す
         if (l.search && l.search.startsWith("?/")) {
           var newPath = l.search.slice(2).split("&").join("?");
           window.history.replaceState(null, "", l.pathname + newPath + l.hash);
