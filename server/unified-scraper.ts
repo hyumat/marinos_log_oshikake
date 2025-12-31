@@ -122,6 +122,79 @@ function makeAbsoluteUrl(href: string | null | undefined): string | null {
   return `https://www.jleague.jp${href?.startsWith('/') ? '' : '/'}${href}`;
 }
 
+/**
+ * Normalize match URL for consistent deduplication.
+ * Removes trailing slashes, query params, hash, and sub-paths like /ticket/, /player/
+ */
+export function normalizeMatchUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  
+  try {
+    const parsed = new URL(url);
+    let path = parsed.pathname;
+    
+    // Remove sub-paths that don't affect match identity
+    path = path.replace(
+      /\/(ticket|player|live|photo|coach|stats|map|report|news|event|commentary)(\/.*)?$/i,
+      '/'
+    );
+    
+    // Remove trailing slashes
+    path = path.replace(/\/+$/, '');
+    
+    // Reconstruct URL without query params and hash
+    return `${parsed.protocol}//${parsed.host}${path}`;
+  } catch {
+    // If URL parsing fails, do basic normalization
+    return url
+      .replace(/\/(ticket|player|live|photo|coach|stats|map|report|news|event|commentary)(\/.*)?$/i, '')
+      .replace(/\/+$/, '')
+      .replace(/[?#].*$/, '');
+  }
+}
+
+/**
+ * Generate a stable unique key from match data.
+ * Priority: normalized matchUrl > date+opponent+kickoff > date+opponent
+ */
+export function generateMatchKey(match: Partial<MatchFixture>): string {
+  // If we have a matchUrl, use it as the basis
+  if (match.matchUrl) {
+    const normalized = normalizeMatchUrl(match.matchUrl);
+    if (normalized) {
+      // Extract match ID from URL if possible (e.g., /match/j/2025/12/01/)
+      const matchIdMatch = normalized.match(/\/match\/[^/]+\/(\d{4}\/\d{2}\/\d{2})/);
+      if (matchIdMatch) {
+        return `jleague-${matchIdMatch[1].replace(/\//g, '-')}`;
+      }
+      // Use hash of normalized URL
+      return `url-${simpleHash(normalized)}`;
+    }
+  }
+  
+  // Fallback: date + opponent + kickoff (more unique than date + opponent)
+  const parts = [match.date || 'unknown'];
+  if (match.opponent) parts.push(match.opponent);
+  else if (match.away) parts.push(match.away);
+  if (match.kickoff) parts.push(match.kickoff);
+  if (match.competition) parts.push(match.competition.substring(0, 10));
+  
+  return parts.join('-');
+}
+
+/**
+ * Simple hash function for string (for URL-based keys)
+ */
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
 // ====== Fetch & Parse ======
 async function fetchJleagueHtml(url: string): Promise<string | null> {
   try {

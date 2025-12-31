@@ -40,6 +40,17 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2025-12-31: LSPエラー修正・OAuth警告レベル変更
+  - scraper.tsから6つのユーティリティ関数をエクスポート
+  - scraper.test.tsで実際の関数をインポートしてテスト（インライン実装を削除）
+  - OAuthのエラーメッセージを警告に変更（認証なしでもアプリ動作可能）
+  - 全104テストパス
+
+- 2025-12-31: GitHub Issue #10 & #11 完了
+  - Issue #11: matchUrl正規化とgenerateMatchKey()による重複防止
+  - Issue #10: syncLog永続化（URL/status/exception/duration/counts追跡）
+  - unified-scraperテスト9件追加
+
 - 2025-12-30: StatsページUI改善 (GitHub Issue #2)
   - APIレスポンス形式を新構造に対応: cost.total, record.win等
   - エラー状態に再試行ボタンを追加

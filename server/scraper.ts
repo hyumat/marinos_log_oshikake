@@ -57,7 +57,7 @@ const MARINOS_NAMES = new Set([
 /**
  * 文字列を正規化（スペース、改行を削除）
  */
-function normalizeText(text: string | undefined): string {
+export function normalizeText(text: string | undefined): string {
   if (!text) return '';
   return text
     .replace(/\u00A0/g, ' ')
@@ -68,7 +68,7 @@ function normalizeText(text: string | undefined): string {
 /**
  * マリノスの名前かどうかを判定
  */
-function isMarinosName(name: string): boolean {
+export function isMarinosName(name: string): boolean {
   const normalized = normalizeText(name);
   return MARINOS_NAMES.has(normalized) || 
          normalized.includes('横浜') && (normalized.includes('FM') || normalized.includes('ＦＭ'));
@@ -77,7 +77,7 @@ function isMarinosName(name: string): boolean {
 /**
  * ホーム/アウェイを判定
  */
-function detectMarinosSide(homeTeam: string, awayTeam: string): 'home' | 'away' | null {
+export function detectMarinosSide(homeTeam: string, awayTeam: string): 'home' | 'away' | null {
   if (isMarinosName(homeTeam)) return 'home';
   if (isMarinosName(awayTeam)) return 'away';
   return null;
@@ -86,7 +86,7 @@ function detectMarinosSide(homeTeam: string, awayTeam: string): 'home' | 'away' 
 /**
  * 相手チーム名を抽出
  */
-function deriveOpponent(homeTeam: string, awayTeam: string): string {
+export function deriveOpponent(homeTeam: string, awayTeam: string): string {
   const home = normalizeText(homeTeam);
   const away = normalizeText(awayTeam);
   
@@ -107,7 +107,7 @@ function makeAbsoluteUrl(href: string): string {
 /**
  * 試合本体URLを正規化（/match/cat/year/id/）
  */
-function toMatchBaseUrl(url: string): string | null {
+export function toMatchBaseUrl(url: string): string | null {
   if (!url) return null;
   const match = url.match(/^(https?:\/\/[^/]+)?(\/match\/[^/]+\/\d{4}\/\d+\/)/i);
   if (!match) return null;
@@ -125,7 +125,7 @@ function extractNumber(text: string): number | null {
 /**
  * 日付を ISO 形式に変換（例：2025年2月12日 -> 2025-02-12）
  */
-function parseJapaneseDateToISO(text: string): string | null {
+export function parseJapaneseDateToISO(text: string): string | null {
   const match = text.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
   if (!match) return null;
   const [, year, month, day] = match;

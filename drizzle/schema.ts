@@ -121,14 +121,26 @@ export type InsertUserMatch = typeof userMatches.$inferInsert;
  */
 export const syncLogs = mysqlTable("syncLogs", {
   id: int("id").autoincrement().primaryKey(),
-  /** Source (e.g., "jleague") */
+  /** Source (e.g., "jleague", "phew", "f-marinos") */
   source: varchar("source", { length: 32 }).notNull(),
-  /** Status: "success" or "failed" */
-  status: mysqlEnum("status", ["success", "failed"]).notNull(),
+  /** Status: "success", "partial", or "failed" */
+  status: mysqlEnum("status", ["success", "partial", "failed"]).notNull(),
   /** Number of matches fetched */
   matchesCount: int("matchesCount").default(0).notNull(),
+  /** Number of matches with results (scores) */
+  resultsCount: int("resultsCount").default(0),
+  /** Number of upcoming matches */
+  upcomingCount: int("upcomingCount").default(0),
+  /** Number of detail fetches attempted */
+  detailFetched: int("detailFetched").default(0),
+  /** Number of detail fetches failed */
+  detailFailed: int("detailFailed").default(0),
   /** Error message if failed */
   errorMessage: text("errorMessage"),
+  /** URLs that failed (JSON array) */
+  failedUrls: text("failedUrls"),
+  /** Duration in milliseconds */
+  durationMs: int("durationMs"),
   /** Sync timestamp */
   syncedAt: timestamp("syncedAt").defaultNow().notNull(),
 });

@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, matches as matchesTable, userMatches as userMatchesTable, InsertUserMatch, UserMatch } from "../drizzle/schema";
+import { InsertUser, users, matches as matchesTable, userMatches as userMatchesTable, syncLogs as syncLogsTable, InsertUserMatch, UserMatch, InsertSyncLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -308,5 +308,43 @@ export async function deleteUserMatch(userMatchId: number, userId: number) {
   } catch (error) {
     console.error('[Database] Failed to delete user match:', error);
     throw error;
+  }
+}
+
+// ========== Sync Log Operations ==========
+
+export async function createSyncLog(data: InsertSyncLog) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot create sync log: database not available');
+    return undefined;
+  }
+  
+  try {
+    const result = await db.insert(syncLogsTable).values(data);
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to create sync log:', error);
+    return undefined;
+  }
+}
+
+export async function getRecentSyncLogs(limit: number = 10) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get sync logs: database not available');
+    return [];
+  }
+  
+  try {
+    const result = await db.select()
+      .from(syncLogsTable)
+      .orderBy(sql`${syncLogsTable.syncedAt} DESC`)
+      .limit(limit);
+    
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to get sync logs:', error);
+    return [];
   }
 }

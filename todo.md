@@ -51,11 +51,15 @@
 - [x] Stats 集計API実装（GitHub Issue #1）
 - [x] Statsページ UI実装（GitHub Issue #2）
 - [x] 同期 → 一覧表示 → 詳細 → 観戦記録追加/編集/削除 → Stats表示 が一通り動く
-- [x] テストが全て通る（`pnpm test` → 93件パス）
-- [ ] モバイル幅で主要画面が破綻しない
+- [x] テストが全て通る（`pnpm test` → 104件パス）
+- [x] モバイル幅で主要画面が破綻しない
 
 ---
 
 ## Completed GitHub Issues
 - [x] Issue #1: Stats集計バックエンド実装（2025-12-30）
 - [x] Issue #2: StatsページUI実装（2025-12-30）
+- [x] Issue #6: Stats年別フィルタ・Empty表示（2025-12-30）
+- [x] Issue #9: 試合一覧フィルタリング（期間/対戦相手/Home-Away）（2025-12-30）
+- [x] Issue #10: syncLog永続化（URL/status/exception/duration/counts）（2025-12-31）
+- [x] Issue #11: matchUrl正規化・重複防止（generateMatchKey()関数）（2025-12-31）

@@ -4,9 +4,9 @@
 
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
-import { upsertMatches, getMatches } from '../db';
+import { upsertMatches, getMatches, createSyncLog, getRecentSyncLogs } from '../db';
 import { getSampleMatches } from '../test-data';
-import { scrapeAllMatches } from '../unified-scraper';
+import { scrapeAllMatches, generateMatchKey, normalizeMatchUrl } from '../unified-scraper';
 
 // In-memory cache for scraped matches (when DB unavailable)
 let cachedMatches: any[] | null = null;
@@ -25,22 +25,28 @@ export const matchesRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      const startTime = Date.now();
+      let syncStatus: 'success' | 'partial' | 'failed' = 'success';
+      let errorMessage: string | undefined;
+      
       try {
         console.log('[Matches Router] Starting official match fetch...');
         
         // Fetch from unified scraper (Jリーグ公式 + Phew)
         const { fixtures, results, upcoming, counts } = await scrapeAllMatches();
+        const durationMs = Date.now() - startTime;
         
-        console.log(`[Matches Router] Got ${fixtures.length} total matches`);
+        console.log(`[Matches Router] Got ${fixtures.length} total matches in ${durationMs}ms`);
         
         if (fixtures.length > 0) {
-          // Convert to database format
+          // Convert to database format with stable unique keys
           const dbMatches = fixtures.map((f, idx) => ({
             id: idx + 1,
-            sourceKey: `${f.date}-${f.opponent || f.away}`,
+            sourceKey: generateMatchKey(f),
             date: f.date,
             kickoff: f.kickoff,
             competition: f.competition,
+            roundLabel: f.roundLabel,
             homeTeam: f.home,
             awayTeam: f.away,
             opponent: f.opponent || (f.marinosSide === 'home' ? f.away : f.home),
@@ -49,7 +55,7 @@ export const matchesRouter = router({
             homeScore: f.homeScore,
             awayScore: f.awayScore,
             isResult: f.isResult ? 1 : 0,
-            matchUrl: f.matchUrl,
+            matchUrl: normalizeMatchUrl(f.matchUrl) || f.matchUrl,
           }));
           
           // Store in memory cache for fast retrieval
@@ -62,8 +68,21 @@ export const matchesRouter = router({
             console.log(`[Matches Router] Saved ${dbMatches.length} matches to database`);
           } catch (dbError) {
             console.log('[Matches Router] DB unavailable, data cached in memory only');
+            syncStatus = 'partial';
+            errorMessage = 'DB unavailable, data cached in memory only';
           }
         }
+        
+        // Log sync operation to database
+        await createSyncLog({
+          source: 'unified',
+          status: syncStatus,
+          matchesCount: fixtures.length,
+          resultsCount: results.length,
+          upcomingCount: upcoming.length,
+          errorMessage,
+          durationMs: Date.now() - startTime,
+        });
         
         return {
           success: true,
@@ -74,7 +93,21 @@ export const matchesRouter = router({
         };
         
       } catch (error) {
-        console.error('[Matches Router] Error fetching official matches:', error);
+        const durationMs = Date.now() - startTime;
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error('[Matches Router] Error fetching official matches:', errMsg);
+        
+        // Log failed sync operation
+        await createSyncLog({
+          source: 'unified',
+          status: 'failed',
+          matchesCount: 0,
+          resultsCount: 0,
+          upcomingCount: 0,
+          errorMessage: errMsg,
+          durationMs,
+        });
+        
         // Return empty success instead of throwing
         return {
           success: false,
