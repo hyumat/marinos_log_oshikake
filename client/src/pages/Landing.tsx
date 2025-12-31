@@ -71,13 +71,13 @@ export default function LandingPageOshikakeLog() {
           <div>
             <div className="text-sm font-bold text-blue-700 mb-2">おしかけログ</div>
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl leading-tight">
-              観戦の記録と、<br />
-              観戦にかかった費用を<br />
-              <span className="text-blue-700">"ちゃんと残す"</span>。
+              あの試合、<br />
+              いくら使った？<br />
+              <span className="text-blue-700">全部わかる。</span>
             </h1>
 
             <p className="mt-6 text-base leading-relaxed text-slate-600 md:text-lg">
-              試合結果・試合予定も、同じ場所で確認。
+              観戦の記録と費用を、まとめて残して、いつでも見返せる。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
