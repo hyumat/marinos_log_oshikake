@@ -5,7 +5,7 @@ import step3Image from "@assets/generated_images/stats_dashboard_screenshot.png"
 
 /**
  * LP: おしかけログ
- * マリノスサポーター向け観戦記録サービス
+ * 観戦記録サービス
  * トリコロールカラー（青・白・赤）を控えめに使用
  */
 export default function LandingPageOshikakeLog() {
@@ -26,8 +26,8 @@ export default function LandingPageOshikakeLog() {
 
   const faq = [
     {
-      q: "公式データが取れないことはありますか？",
-      a: "まれにあります。公式サイトの構造が変わっても、できるだけ壊れにくい仕組みを採用しています。万が一取り込みに失敗しても、記録は残るのでアプリが止まることはありません。",
+      q: "試合データが取れないことはありますか？",
+      a: "まれにあります。サイトの構造が変わっても、できるだけ壊れにくい仕組みを採用しています。万が一取り込みに失敗しても、記録は残るのでアプリが止まることはありません。",
     },
     {
       q: "オフラインでも見られますか？",
@@ -61,7 +61,7 @@ export default function LandingPageOshikakeLog() {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-blue-900">おしかけログ</div>
-              <div className="text-xs text-slate-500">for マリノスサポーター</div>
+              <div className="text-xs text-slate-500">観戦記録サービス</div>
             </div>
           </div>
 
@@ -100,7 +100,7 @@ export default function LandingPageOshikakeLog() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3 py-1 text-xs font-medium text-blue-800 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-blue-500" />
-              マリノスサポーター専用
+              観戦記録をもっと簡単に
             </div>
 
             <h1 className="mt-5 text-3xl font-bold tracking-tight md:text-5xl">
@@ -110,8 +110,8 @@ export default function LandingPageOshikakeLog() {
             </h1>
 
             <p className="mt-4 text-base leading-relaxed text-slate-600 md:text-lg">
-              Jリーグ公式試合情報を取り込み、観戦した試合だけを記録。
-              交通費・チケット代などの費用を蓄積し、今季の勝敗と支出を自動で集計します。
+              観戦した試合のメモと費用をまとめて管理。
+              今季の観戦数や勝敗、支出の合計までひと目で振り返れます。
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -136,7 +136,7 @@ export default function LandingPageOshikakeLog() {
             </div>
 
             <p className="mt-4 text-xs text-slate-500">
-              ※観戦ログ・費用はあなたのDBに保存。公式情報は公開情報を参照します。
+              ※観戦ログ・費用はあなたのデータベースに保存されます。
             </p>
           </div>
 
@@ -198,7 +198,7 @@ export default function LandingPageOshikakeLog() {
           <SectionHeader
             eyebrow="課題"
             title="観戦の記録、散らばってませんか？"
-            desc="メモ・SNS・家計簿に分散した情報を、公式試合データに紐づけて一箇所へ。"
+            desc="メモ・SNS・家計簿に分散した情報を、試合ごとにまとめて一箇所へ。"
           />
           <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
             <FeatureCard
@@ -217,8 +217,8 @@ export default function LandingPageOshikakeLog() {
               icon="📈"
             />
             <FeatureCard
-              title="公式情報とのズレ"
-              desc="試合日時・会場・結果が手入力だとズレやすい。"
+              title="入力が面倒"
+              desc="試合ごとに情報を書くのが手間で続かない。"
               icon="🧾"
             />
           </div>
@@ -230,13 +230,13 @@ export default function LandingPageOshikakeLog() {
         <div className="grid gap-6 md:grid-cols-3">
           <SectionHeader
             eyebrow="解決"
-            title="公式データに紐づく観戦ログ"
-            desc="公式試合情報を土台にして、観戦記録と費用を積み上げ、集計する。"
+            title="続けられる観戦ログ"
+            desc="試合ごとに『観た』記録を残すだけ。あとから、観戦の思い出と支出をまとめて振り返れます。"
           />
           <div className="md:col-span-2 grid gap-4">
             <BigFeature
-              title="① 公式試合データを自動取得"
-              desc="公式サイトの試合日程・会場・結果を自動で取り込み、記録の土台をつくります。サイトが更新されても、できるだけ壊れにくい仕組みです。"
+              title="① 試合情報を手間なく取得"
+              desc="試合日程・会場・結果を自動で取り込み、記録の土台をつくります。自分で入力しなくても手間が少ない。"
               bullets={["大会名・節（第○節など）を整理", "会場・対戦カード・結果を見やすく", "取り込みに失敗しても安心"]}
             />
             <BigFeature
@@ -246,7 +246,7 @@ export default function LandingPageOshikakeLog() {
             />
             <BigFeature
               title="③ 戦績と費用を自動集計"
-              desc="観戦ログ×公式結果から、勝分敗と支出を期間別に集計。"
+              desc="観戦ログから、勝分敗と支出を期間別に集計。"
               bullets={["観戦試合数", "勝・分・敗・未確定", "費用合計 / 平均（次で内訳も）"]}
             />
           </div>
@@ -268,7 +268,7 @@ export default function LandingPageOshikakeLog() {
             <StepCardWithImage
               step="1"
               title="試合一覧から選ぶ"
-              desc="公式試合データを同期し、観戦した試合を選択"
+              desc="試合データを同期し、観戦した試合を選択"
               image={step1Image}
               color="blue"
             />
@@ -401,8 +401,8 @@ export default function LandingPageOshikakeLog() {
               icon="🧰"
             />
             <InfoCard
-              title="公式情報"
-              desc="公式サイトから試合情報を自動で取り込みます。サイトが変わっても壊れにくい仕組みです。"
+              title="試合情報"
+              desc="試合情報を自動で取り込みます。サイトが変わっても壊れにくい仕組みです。"
               icon="🧾"
             />
             <InfoCard
@@ -459,7 +459,7 @@ export default function LandingPageOshikakeLog() {
               <div className="text-xs font-semibold uppercase tracking-wider text-white/70">Ready?</div>
               <h2 className="mt-2 text-2xl font-bold md:text-3xl">今季の観戦を、ちゃんと残そう。</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/75">
-                公式データに紐づけて記録するから、あとで振り返りやすい。費用と結果を集計して、観戦の"履歴"を資産に。
+                試合ごとに記録するから、あとで振り返りやすい。費用と結果を集計して、観戦の"履歴"を資産に。
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
