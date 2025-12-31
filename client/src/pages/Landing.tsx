@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import step1Image from "@assets/generated_images/match_list_app_screenshot.png";
-import step2Image from "@assets/generated_images/match_log_form_screenshot.png";
-import step3Image from "@assets/generated_images/stats_dashboard_screenshot.png";
+import step1Image from "@assets/generated_images/match_list_english_screenshot.png";
+import step2Image from "@assets/generated_images/match_log_form_english_screenshot.png";
+import step3Image from "@assets/generated_images/stats_dashboard_english_screenshot.png";
 
 /**
  * LP: おしかけログ
