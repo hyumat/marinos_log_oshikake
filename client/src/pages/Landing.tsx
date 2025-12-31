@@ -27,19 +27,19 @@ export default function LandingPageOshikakeLog() {
   const faq = [
     {
       q: "公式データが取れないことはありますか？",
-      a: "あります。公式サイトの構造変更に備え、JSON-LD（構造化データ）を最優先にし、取れない場合は複数のHTMLセレクタでフォールバックします。失敗時は同期ログに記録し、アプリが落ちない設計です。",
+      a: "まれにあります。公式サイトの構造が変わっても、できるだけ壊れにくい仕組みを採用しています。万が一取り込みに失敗しても、記録は残るのでアプリが止まることはありません。",
     },
     {
       q: "オフラインでも見られますか？",
-      a: "過去データはDBに保存されるため、閲覧は可能です（同期はオンライン時に実行）。PWA化やキャッシュ戦略は拡張ポイントとして想定しています。",
+      a: "過去のデータは保存されるため、閲覧は可能です（新しい試合の取り込みはオンライン時に行います）。今後、スマホアプリのような体験も拡張予定です。",
     },
     {
       q: "費用は何を記録できますか？",
-      a: "MVPでは「費用合計（交通・チケット・飲食などをまとめて）」とメモを記録できます。次の段階でカテゴリ内訳（交通/チケット/飲食…）にも拡張できます。",
+      a: "現在は「費用合計（交通・チケット・飲食などをまとめて）」とメモを記録できます。今後、カテゴリ別の内訳（交通/チケット/飲食…）にも対応予定です。",
     },
     {
       q: "マリノス以外のチームにも使えますか？",
-      a: "現時点では横浜F・マリノスを前提に最適化しています。将来的にチーム切り替え対応も可能です（取得元と判定ロジックの一般化）。",
+      a: "現時点では横浜F・マリノスを前提に最適化しています。将来的に他チームへの対応も検討中です。",
     },
   ];
 
@@ -183,7 +183,7 @@ export default function LandingPageOshikakeLog() {
                   <div className="font-semibold">観戦記録を、もっと簡単に。</div>
                   <div className="text-xs text-white/70">試合を選んで、費用とメモを入力するだけ</div>
                 </div>
-                <div className="hidden text-xs text-white/70 sm:block">PWA / Mobile-first</div>
+                <div className="hidden text-xs text-white/70 sm:block">スマホ対応</div>
               </div>
             </div>
 
@@ -236,13 +236,13 @@ export default function LandingPageOshikakeLog() {
           <div className="md:col-span-2 grid gap-4">
             <BigFeature
               title="① 公式試合データを自動取得"
-              desc="日程・会場・結果などを取り込み、記録の土台に。サイト構造の変化に備え、JSON-LD優先＋フォールバックで安定化。"
-              bullets={["大会/節（第◯節・MD◯）を保持", "会場・対戦カード・結果を確定", "失敗時はログに残して安全に"]}
+              desc="公式サイトの試合日程・会場・結果を自動で取り込み、記録の土台をつくります。サイトが更新されても、できるだけ壊れにくい仕組みです。"
+              bullets={["大会名・節（第○節など）を整理", "会場・対戦カード・結果を見やすく", "取り込みに失敗しても安心"]}
             />
             <BigFeature
               title="② 観戦した試合だけ記録"
               desc="試合詳細から、観戦日時・費用・メモを保存。編集・削除も簡単。"
-              bullets={["観戦日時（watchedAt）", "費用合計（costTotal）", "メモ（memo）"]}
+              bullets={["いつ観戦したか", "いくらかかったか", "思い出メモ"]}
             />
             <BigFeature
               title="③ 戦績と費用を自動集計"
@@ -326,7 +326,7 @@ export default function LandingPageOshikakeLog() {
                 suffix=""
                 hint={`勝-分-敗（未確定 ${statsPreview.unknown}）`}
               />
-              <Metric title="費用合計" value={`¥${statsPreview.total.toLocaleString()}`} suffix="" hint="費用合計（MVPは合計のみ）" />
+              <Metric title="費用合計" value={`¥${statsPreview.total.toLocaleString()}`} suffix="" hint="交通・チケット・飲食などの合計" />
               <Metric title="平均/試合" value={`¥${statsPreview.avg.toLocaleString()}`} suffix="" hint="費用合計 / 観戦試合数" />
             </div>
 
@@ -349,29 +349,29 @@ export default function LandingPageOshikakeLog() {
           <div className="grid gap-8 md:grid-cols-3">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">ロードマップ</div>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">MVP → 拡張</h2>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">今後の予定</h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                最初に「記録と集計が成立する」状態を作り、その後に内訳や可視化を追加します。
+                まず「記録と集計ができる」状態を完成させ、その後に内訳や可視化を追加していきます。
               </p>
             </div>
 
             <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
               <RoadmapCard
-                tag="MVP"
-                title="集計を完成させる"
+                tag="今"
+                title="基本機能を完成"
                 items={[
-                  "Stats API（観戦数/勝分敗/費用合計/平均）",
-                  "Statsページ（年フィルタ・エラー/空表示）",
-                  "実データで統合テスト",
+                  "観戦数・勝敗・費用の集計",
+                  "年別フィルタ",
+                  "エラー時も安心な表示",
                 ]}
                 tagColor="blue"
               />
               <RoadmapCard
-                tag="Next"
+                tag="次"
                 title="『振り返り』を強化"
                 items={[
-                  "費用内訳（カテゴリ）",
-                  "グラフ/チャート",
+                  "費用内訳（交通/チケット/飲食…）",
+                  "グラフ・チャートで可視化",
                   "スタジアム別・相手別の集計",
                 ]}
                 tagColor="red"
@@ -402,12 +402,12 @@ export default function LandingPageOshikakeLog() {
             />
             <InfoCard
               title="公式情報"
-              desc="JSON-LDを優先し、サイト構造変化に備えたフォールバックで取得します。"
+              desc="公式サイトから試合情報を自動で取り込みます。サイトが変わっても壊れにくい仕組みです。"
               icon="🧾"
             />
             <InfoCard
-              title="モバイル最優先"
-              desc="スマホで『サッと記録』。PWA化・オフライン体験も拡張可能です。"
+              title="スマホ対応"
+              desc="スマホで『サッと記録』。アプリのような体験も今後拡張予定です。"
               icon="📱"
             />
           </div>
