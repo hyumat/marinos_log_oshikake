@@ -372,6 +372,7 @@ export default function LandingPageOshikakeLog() {
             <a href="#solution" className="hover:text-blue-700 transition-colors">機能</a>
             <a href="#how" className="hover:text-blue-700 transition-colors">使い方</a>
             <a href="#faq" className="hover:text-blue-700 transition-colors">FAQ</a>
+            <a href="/pricing" className="hover:text-blue-700 transition-colors">料金</a>
             <span className="text-slate-300">|</span>
             <a href="/privacy" className="hover:text-blue-700 transition-colors">プライバシー</a>
             <a href="/terms" className="hover:text-blue-700 transition-colors">利用規約</a>

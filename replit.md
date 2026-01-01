@@ -40,13 +40,15 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
-- 2026-01-01: GitHub Issue #44 進行中 - 無料プラン制限（今季10件まで）
+- 2026-01-01: GitHub Issue #44 完了 - 無料プラン制限（今季10件まで）
   - shared/billing.ts: FREE_PLAN_LIMIT, isPro, canCreateAttendance, calculatePlanStatus
   - server/db.ts: getAttendanceCountForSeason, getUserPlan
   - userMatches.getPlanStatus API追加
   - saveAttendance APIに制限チェック追加（LIMIT_REACHEDエラー）
   - LimitReachedModal, PlanStatusBadgeコンポーネント作成
   - MatchDetail.tsxに制限表示・モーダル統合
+  - /pricing 料金プランページ追加（無料・Proプラン比較）
+  - LPフッターに料金リンク追加
   - 15件のbilling.test.ts追加、全156テストパス
 
 - 2026-01-01: GitHub Issue #19, #27, #28, #29, #30, #31, #32, #33, #47 完了 - MVPリリース直前仕上げ

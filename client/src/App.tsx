@@ -13,6 +13,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Support from "./pages/Support";
 import Upgrade from "./pages/Upgrade";
+import Pricing from "./pages/Pricing";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -32,6 +33,7 @@ function Router() {
       <Route path={"/terms"} component={Terms} />
       <Route path={"/support"} component={Support} />
       <Route path={"/upgrade"} component={Upgrade} />
+      <Route path={"/pricing"} component={Pricing} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
