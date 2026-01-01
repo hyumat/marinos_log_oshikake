@@ -2,6 +2,7 @@
  * Match Detail Page
  * Issue #39: Refactored to use MatchDetailView and UserMatchForm components
  * Issue #19: Expenses now saved to DB instead of LocalStorage
+ * Issue #44: Free plan limit (10 records per season)
  */
 
 import { useParams, useLocation } from 'wouter';
@@ -13,7 +14,10 @@ import { ArrowLeft } from 'lucide-react';
 import { MatchDetailView } from '@/components/MatchDetailView';
 import { UserMatchForm, type ExpenseData } from '@/components/UserMatchForm';
 import { QueryLoading, QueryError } from '@/components/QueryState';
+import { LimitReachedModal } from '@/components/LimitReachedModal';
+import { PlanStatusBadge } from '@/components/PlanStatusBadge';
 import type { MatchDTO } from '@shared/dto';
+import { FREE_PLAN_LIMIT } from '@shared/billing';
 
 export default function MatchDetail() {
   const [, setLocation] = useLocation();
@@ -28,8 +32,11 @@ export default function MatchDetail() {
     other: '',
     note: '',
   });
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const { data, isLoading, error, refetch } = trpc.matches.listOfficial.useQuery({});
+  
+  const { data: planStatus } = trpc.userMatches.getPlanStatus.useQuery();
   const match = data?.matches?.find((m: { id: number | string }) => String(m.id) === matchId) as MatchDTO | undefined;
 
   const { data: attendanceData, isLoading: isLoadingAttendance, refetch: refetchAttendance } = 
@@ -44,7 +51,11 @@ export default function MatchDetail() {
       refetchAttendance();
     },
     onError: (err) => {
-      toast.error(err.message || '保存に失敗しました');
+      if (err.message === 'LIMIT_REACHED') {
+        setShowLimitModal(true);
+      } else {
+        toast.error(err.message || '保存に失敗しました');
+      }
     },
   });
 
@@ -123,7 +134,6 @@ export default function MatchDetail() {
     <Button
       variant="ghost"
       size="sm"
-      className="mb-4"
       onClick={() => setLocation('/matches')}
     >
       <ArrowLeft className="w-4 h-4 mr-2" />
@@ -173,10 +183,22 @@ export default function MatchDetail() {
 
   const isSaving = saveAttendanceMutation.isPending || deleteAttendanceMutation.isPending;
 
+  const isExistingAttendance = !!attendanceData?.userMatch?.status && attendanceData.userMatch.status === 'attended';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-2xl mx-auto px-4 py-6">
-        <BackButton />
+        <div className="flex items-center justify-between mb-4">
+          <BackButton />
+          {planStatus && !isExistingAttendance && (
+            <PlanStatusBadge
+              plan={planStatus.plan}
+              attendanceCount={planStatus.attendanceCount}
+              limit={planStatus.limit === Infinity ? 999 : planStatus.limit}
+              remaining={planStatus.remaining === Infinity ? 999 : planStatus.remaining}
+            />
+          )}
+        </div>
         <MatchDetailView match={match} />
         <UserMatchForm
           initialValues={initialExpenses}
@@ -185,6 +207,12 @@ export default function MatchDetail() {
           isSaving={isSaving}
         />
       </div>
+      <LimitReachedModal
+        open={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        seasonYear={planStatus?.seasonYear ?? new Date().getFullYear()}
+        limit={FREE_PLAN_LIMIT}
+      />
     </div>
   );
 }

@@ -360,6 +360,57 @@ export async function getRecentSyncLogs(limit: number = 10) {
   }
 }
 
+// ========== Plan & Attendance Count Operations ==========
+
+export async function getAttendanceCountForSeason(userId: number, seasonYear: number): Promise<number> {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get attendance count: database not available');
+    return 0;
+  }
+  
+  try {
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(userMatchesTable)
+      .where(sql`${userMatchesTable.userId} = ${userId} AND ${userMatchesTable.seasonYear} = ${seasonYear} AND ${userMatchesTable.status} = 'attended'`);
+    
+    return result[0]?.count ?? 0;
+  } catch (error) {
+    console.error('[Database] Failed to get attendance count:', error);
+    return 0;
+  }
+}
+
+export async function getUserPlan(userId: number): Promise<{ plan: 'free' | 'pro'; planExpiresAt: Date | null }> {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get user plan: database not available');
+    return { plan: 'free', planExpiresAt: null };
+  }
+  
+  try {
+    const result = await db.select({
+      plan: users.plan,
+      planExpiresAt: users.planExpiresAt,
+    })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    if (result.length === 0) {
+      return { plan: 'free', planExpiresAt: null };
+    }
+    
+    return {
+      plan: result[0].plan as 'free' | 'pro',
+      planExpiresAt: result[0].planExpiresAt,
+    };
+  } catch (error) {
+    console.error('[Database] Failed to get user plan:', error);
+    return { plan: 'free', planExpiresAt: null };
+  }
+}
+
 // ========== Match Expense Operations ==========
 
 export async function getExpensesByUserMatch(userMatchId: number, userId: number): Promise<MatchExpense[]> {

@@ -13,10 +13,44 @@ import {
   deleteExpensesByUserMatch,
   getExpensesByUserMatch,
   logEvent,
+  getAttendanceCountForSeason,
+  getUserPlan,
 } from '../db';
 import { userMatches as userMatchesTable } from '../../drizzle/schema';
+import { FREE_PLAN_LIMIT, getCurrentSeasonYear, canCreateAttendance, calculatePlanStatus } from '../../shared/billing';
 
 export const userMatchesRouter = router({
+  /**
+   * Get user's plan status and attendance limits
+   */
+  getPlanStatus: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const seasonYear = getCurrentSeasonYear();
+        const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
+        const attendanceCount = await getAttendanceCountForSeason(ctx.user.id, seasonYear);
+        
+        const status = calculatePlanStatus(plan, planExpiresAt, attendanceCount);
+        
+        return {
+          success: true,
+          ...status,
+        };
+      } catch (error) {
+        console.error('[User Matches Router] Error getting plan status:', error);
+        return {
+          success: true,
+          plan: 'free' as const,
+          isPro: false,
+          seasonYear: getCurrentSeasonYear(),
+          attendanceCount: 0,
+          limit: FREE_PLAN_LIMIT,
+          remaining: FREE_PLAN_LIMIT,
+          canCreate: true,
+        };
+      }
+    }),
+
   /**
    * Get all user matches (attended and planned)
    */
@@ -280,6 +314,17 @@ export const userMatchesRouter = router({
             eq(userMatchesTable.matchId, input.matchId)
           ))
           .limit(1);
+
+        const isNewAttendance = existingResults.length === 0 || existingResults[0].status !== 'attended';
+        
+        if (isNewAttendance) {
+          const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
+          const currentCount = await getAttendanceCountForSeason(ctx.user.id, seasonYear);
+          
+          if (!canCreateAttendance(plan, planExpiresAt, seasonYear, currentCount)) {
+            throw new Error('LIMIT_REACHED');
+          }
+        }
 
         let userMatchId: number;
 

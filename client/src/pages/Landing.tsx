@@ -363,15 +363,19 @@ export default function LandingPageOshikakeLog() {
       </section>
 
       <footer className="border-t border-slate-100 py-8">
-        <div className="mx-auto max-w-5xl px-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <div className="mx-auto max-w-5xl px-4 flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
             <span className="text-blue-600 font-semibold">おしかけログ</span>
             <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
           </div>
-          <div className="flex gap-4 text-sm text-slate-500">
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
             <a href="#solution" className="hover:text-blue-700 transition-colors">機能</a>
             <a href="#how" className="hover:text-blue-700 transition-colors">使い方</a>
             <a href="#faq" className="hover:text-blue-700 transition-colors">FAQ</a>
+            <span className="text-slate-300">|</span>
+            <a href="/privacy" className="hover:text-blue-700 transition-colors">プライバシー</a>
+            <a href="/terms" className="hover:text-blue-700 transition-colors">利用規約</a>
+            <a href="/support" className="hover:text-blue-700 transition-colors">お問い合わせ</a>
           </div>
         </div>
       </footer>

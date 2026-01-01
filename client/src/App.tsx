@@ -9,6 +9,10 @@ import Landing from "./pages/Landing";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
 import Stats from "./pages/Stats";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Support from "./pages/Support";
+import Upgrade from "./pages/Upgrade";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -22,6 +26,12 @@ function Router() {
       <Route path={"/matches"} component={Matches} />
       <Route path={"/matches/:id"} component={MatchDetail} />
       <Route path={"/stats"} component={Stats} />
+
+      {/* Legal & Support */}
+      <Route path={"/privacy"} component={Privacy} />
+      <Route path={"/terms"} component={Terms} />
+      <Route path={"/support"} component={Support} />
+      <Route path={"/upgrade"} component={Upgrade} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
