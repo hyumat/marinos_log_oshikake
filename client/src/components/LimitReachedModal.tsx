@@ -32,10 +32,10 @@ export function LimitReachedModal({ open, onClose, seasonYear, limit }: LimitRea
           <AlertDialogTitle>記録上限に達しました</AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <p>
-              {seasonYear}シーズンの無料プランでは、観戦記録は{limit}件までです。
+              Freeプランでは、記録可能試合は{limit}件までです。
             </p>
             <p>
-              Proプランにアップグレードすると、無制限に記録できます。
+              Plus/Proプランにアップグレードすると、より多くの試合を記録できます。
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -44,7 +44,7 @@ export function LimitReachedModal({ open, onClose, seasonYear, limit }: LimitRea
             閉じる
           </Button>
           <Button onClick={handleUpgrade}>
-            Proプランを見る
+            料金プランを見る
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

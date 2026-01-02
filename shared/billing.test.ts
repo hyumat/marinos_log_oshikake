@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   FREE_PLAN_LIMIT,
+  PLUS_PLAN_LIMIT,
   isPro,
+  isPlus,
   getEffectivePlan,
   canCreateAttendance,
   calculatePlanStatus,
@@ -9,9 +11,13 @@ import {
 } from './billing';
 
 describe('billing utilities', () => {
-  describe('FREE_PLAN_LIMIT', () => {
-    it('should be 10', () => {
+  describe('Plan Limits', () => {
+    it('FREE_PLAN_LIMIT should be 10', () => {
       expect(FREE_PLAN_LIMIT).toBe(10);
+    });
+
+    it('PLUS_PLAN_LIMIT should be 30', () => {
+      expect(PLUS_PLAN_LIMIT).toBe(30);
     });
   });
 
@@ -25,6 +31,10 @@ describe('billing utilities', () => {
   describe('isPro', () => {
     it('should return false for free plan', () => {
       expect(isPro('free', null)).toBe(false);
+    });
+
+    it('should return false for plus plan', () => {
+      expect(isPro('plus', null)).toBe(false);
     });
 
     it('should return true for pro plan without expiry', () => {
@@ -44,9 +54,33 @@ describe('billing utilities', () => {
     });
   });
 
+  describe('isPlus', () => {
+    it('should return false for free plan', () => {
+      expect(isPlus('free', null)).toBe(false);
+    });
+
+    it('should return true for plus plan without expiry', () => {
+      expect(isPlus('plus', null)).toBe(true);
+    });
+
+    it('should return false for pro plan', () => {
+      expect(isPlus('pro', null)).toBe(false);
+    });
+
+    it('should return false for expired plus plan', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      expect(isPlus('plus', past)).toBe(false);
+    });
+  });
+
   describe('getEffectivePlan', () => {
     it('should return free for free plan', () => {
       expect(getEffectivePlan('free', null)).toBe('free');
+    });
+
+    it('should return plus for active plus plan', () => {
+      expect(getEffectivePlan('plus', null)).toBe('plus');
     });
 
     it('should return pro for active pro plan', () => {
@@ -64,35 +98,52 @@ describe('billing utilities', () => {
       past.setFullYear(past.getFullYear() - 1);
       expect(getEffectivePlan('pro', past)).toBe('free');
     });
+
+    it('should return free for expired plus plan', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      expect(getEffectivePlan('plus', past)).toBe('free');
+    });
   });
 
   describe('canCreateAttendance', () => {
-    const currentYear = new Date().getFullYear();
-
-    it('should allow pro users to create attendance for any season', () => {
-      expect(canCreateAttendance('pro', null, currentYear, 100)).toBe(true);
-      expect(canCreateAttendance('pro', null, currentYear - 1, 0)).toBe(true);
+    it('should allow pro users to create attendance regardless of count', () => {
+      expect(canCreateAttendance('pro', null, 100)).toBe(true);
+      expect(canCreateAttendance('pro', null, 0)).toBe(true);
     });
 
-    it('should allow free users under limit for current season', () => {
-      expect(canCreateAttendance('free', null, currentYear, 0)).toBe(true);
-      expect(canCreateAttendance('free', null, currentYear, 5)).toBe(true);
-      expect(canCreateAttendance('free', null, currentYear, 9)).toBe(true);
+    it('should allow plus users under limit (30)', () => {
+      expect(canCreateAttendance('plus', null, 0)).toBe(true);
+      expect(canCreateAttendance('plus', null, 15)).toBe(true);
+      expect(canCreateAttendance('plus', null, 29)).toBe(true);
+    });
+
+    it('should block plus users at limit', () => {
+      expect(canCreateAttendance('plus', null, 30)).toBe(false);
+      expect(canCreateAttendance('plus', null, 35)).toBe(false);
+    });
+
+    it('should allow free users under limit', () => {
+      expect(canCreateAttendance('free', null, 0)).toBe(true);
+      expect(canCreateAttendance('free', null, 5)).toBe(true);
+      expect(canCreateAttendance('free', null, 9)).toBe(true);
     });
 
     it('should block free users at limit', () => {
-      expect(canCreateAttendance('free', null, currentYear, 10)).toBe(false);
-      expect(canCreateAttendance('free', null, currentYear, 15)).toBe(false);
-    });
-
-    it('should block free users for past seasons', () => {
-      expect(canCreateAttendance('free', null, currentYear - 1, 0)).toBe(false);
+      expect(canCreateAttendance('free', null, 10)).toBe(false);
+      expect(canCreateAttendance('free', null, 15)).toBe(false);
     });
 
     it('should block expired pro users at limit', () => {
       const past = new Date();
       past.setFullYear(past.getFullYear() - 1);
-      expect(canCreateAttendance('pro', past, currentYear, 10)).toBe(false);
+      expect(canCreateAttendance('pro', past, 10)).toBe(false);
+    });
+
+    it('should block expired plus users at free limit', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      expect(canCreateAttendance('plus', past, 10)).toBe(false);
     });
   });
 
@@ -102,6 +153,7 @@ describe('billing utilities', () => {
       expect(status.plan).toBe('free');
       expect(status.effectivePlan).toBe('free');
       expect(status.isPro).toBe(false);
+      expect(status.isPlus).toBe(false);
       expect(status.attendanceCount).toBe(0);
       expect(status.limit).toBe(10);
       expect(status.remaining).toBe(10);
@@ -120,11 +172,29 @@ describe('billing utilities', () => {
       expect(status.canCreate).toBe(false);
     });
 
+    it('should return correct status for plus user', () => {
+      const status = calculatePlanStatus('plus', null, 15);
+      expect(status.plan).toBe('plus');
+      expect(status.effectivePlan).toBe('plus');
+      expect(status.isPro).toBe(false);
+      expect(status.isPlus).toBe(true);
+      expect(status.limit).toBe(30);
+      expect(status.remaining).toBe(15);
+      expect(status.canCreate).toBe(true);
+    });
+
+    it('should return correct status for plus user at limit', () => {
+      const status = calculatePlanStatus('plus', null, 30);
+      expect(status.remaining).toBe(0);
+      expect(status.canCreate).toBe(false);
+    });
+
     it('should return correct status for pro user', () => {
       const status = calculatePlanStatus('pro', null, 50);
       expect(status.plan).toBe('pro');
       expect(status.effectivePlan).toBe('pro');
       expect(status.isPro).toBe(true);
+      expect(status.isPlus).toBe(false);
       expect(status.limit).toBe(Infinity);
       expect(status.remaining).toBe(Infinity);
       expect(status.canCreate).toBe(true);
@@ -137,6 +207,20 @@ describe('billing utilities', () => {
       expect(status.plan).toBe('pro');
       expect(status.effectivePlan).toBe('free');
       expect(status.isPro).toBe(false);
+      expect(status.isPlus).toBe(false);
+      expect(status.limit).toBe(10);
+      expect(status.remaining).toBe(5);
+      expect(status.canCreate).toBe(true);
+    });
+
+    it('should return effectivePlan as free for expired plus user', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      const status = calculatePlanStatus('plus', past, 5);
+      expect(status.plan).toBe('plus');
+      expect(status.effectivePlan).toBe('free');
+      expect(status.isPro).toBe(false);
+      expect(status.isPlus).toBe(false);
       expect(status.limit).toBe(10);
       expect(status.remaining).toBe(5);
       expect(status.canCreate).toBe(true);

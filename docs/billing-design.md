@@ -2,54 +2,76 @@
 
 ## 概要
 
-おしかけログの無料/有料プラン設計と課金方式の方針を定義します。
+おしかけログの3プラン（Free/Plus/Pro）設計と課金方式の方針を定義します。
 
 ## プラン定義
 
-### Free（無料プラン）
+### Free
 
 | 項目 | 制限 |
 |------|------|
-| 対象シーズン | 今季のみ |
-| 観戦記録作成 | 10件まで |
+| 記録可能試合 | 10件まで（累計、リセットなし） |
 | 既存記録の閲覧 | 無制限 |
 | 既存記録の編集 | 可能 |
 | 試合予定/結果閲覧 | 無制限 |
 | 基本集計 | 可能 |
+| データエクスポート | 不可 |
 
-### Pro（有料プラン）
+### Plus
 
 | 項目 | 内容 |
 |------|------|
-| 対象シーズン | 複数シーズン（過去/来季含む） |
-| 観戦記録作成 | 無制限 |
-| 詳細集計 | 可能（将来拡張） |
-| CSV/PDFエクスポート | 可能（将来拡張） |
-| 優先サポート | 可能（将来拡張） |
+| 記録可能試合 | 30件まで（累計、リセットなし） |
+| 既存記録の閲覧/編集 | 無制限 |
+| 試合予定/結果閲覧 | 無制限 |
+| 基本集計 | 可能 |
+| データエクスポート | CSV対応 |
+| 月額 | ¥490 |
+| 年額 | ¥4,900（2ヶ月分お得） |
+
+### Pro
+
+| 項目 | 内容 |
+|------|------|
+| 記録可能試合 | 無制限 |
+| 既存記録の閲覧/編集 | 無制限 |
+| 試合予定/結果閲覧 | 無制限 |
+| 詳細集計 | 可能 |
+| データエクスポート | CSV/PDF対応 |
+| 優先サポート | 可能 |
+| 月額 | ¥980 |
+| 年額 | ¥9,800（2ヶ月分お得） |
 
 ## データベース設計
 
 ### usersテーブル拡張
 
 ```sql
-ALTER TABLE users ADD COLUMN plan VARCHAR(16) DEFAULT 'free';
-ALTER TABLE users ADD COLUMN planExpiresAt TIMESTAMP NULL;
+plan ENUM('free', 'plus', 'pro') DEFAULT 'free'
+planExpiresAt TIMESTAMP NULL
+stripeCustomerId VARCHAR(255) NULL
+stripeSubscriptionId VARCHAR(255) NULL
 ```
 
 ### 判定ロジック
 
 ```typescript
-function isPro(user: User): boolean {
-  if (user.plan !== 'pro') return false;
-  if (user.planExpiresAt && user.planExpiresAt < new Date()) return false;
-  return true;
+function getEffectivePlan(plan: Plan, planExpiresAt: Date | null): Plan {
+  if (plan === 'free') return 'free';
+  if (planExpiresAt && planExpiresAt < new Date()) return 'free';
+  return plan;
 }
 
-function canCreateAttendance(user: User, seasonYear: number, currentCount: number): boolean {
-  if (isPro(user)) return true;
-  const currentSeason = getCurrentSeasonYear();
-  if (seasonYear !== currentSeason) return false;
-  return currentCount < 10;
+function getPlanLimit(plan: Plan, planExpiresAt: Date | null): number {
+  const effective = getEffectivePlan(plan, planExpiresAt);
+  if (effective === 'pro') return Infinity;
+  if (effective === 'plus') return 30;
+  return 10;
+}
+
+function canCreateAttendance(plan: Plan, planExpiresAt: Date | null, currentCount: number): boolean {
+  const limit = getPlanLimit(plan, planExpiresAt);
+  return currentCount < limit;
 }
 ```
 
@@ -92,19 +114,20 @@ function canCreateAttendance(user: User, seasonYear: number, currentCount: numbe
 
 ```
 ┌─────────────────────────────────────┐
-│ 無料プランは今季10試合まで記録できます │
+│ 記録上限に達しました                   │
 │                                     │
-│ 11試合目からはProで無制限に。         │
-│ 過去シーズンの記録もまとめて見返せます。│
+│ Freeプランでは、記録可能試合は10件まで  │
+│ です。Plus/Proプランにアップグレード   │
+│ すると、より多くの試合を記録できます。  │
 │                                     │
-│  [Proで続ける]  [キャンセル]          │
+│  [料金プランを見る]  [閉じる]          │
 └─────────────────────────────────────┘
 ```
 
 ### 残り件数の表示
 
 - ヘッダーまたは観戦記録一覧に表示
-- 例: `今季の記録：7/10`
+- 例: `5/10 件`
 
 ## API設計
 
@@ -141,4 +164,5 @@ function canCreateAttendance(user: User, seasonYear: number, currentCount: numbe
 
 ## 更新履歴
 
+- 2026-01-02: 3プラン対応（Free/Plus/Pro）、シーズン制限撤廃
 - 2026-01-01: 初版作成

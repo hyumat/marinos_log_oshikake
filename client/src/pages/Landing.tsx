@@ -302,81 +302,104 @@ export default function LandingPageOshikakeLog() {
           <FadeInSection>
             <div className="text-center mb-12">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">料金プラン</div>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">無料で始められます</h2>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">Freeで始められます</h2>
               <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
-                おしかけログは無料プランですぐに使えます。より多くの記録を残したい方にはProプランをご用意しています。
+                おしかけログはFreeプランですぐに使えます。より多くの試合を記録したい方には有料プランをご用意しています。
               </p>
             </div>
           </FadeInSection>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             <FadeInSection delay={0}>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold">無料プラン</h3>
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-full">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold">Free</h3>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold">¥0</span>
+                    <span className="text-2xl font-bold">¥0</span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500">まずは気軽に始めたい方に</p>
+                  <p className="mt-1 text-xs text-slate-500">まずは気軽に始めたい方に</p>
                 </div>
-                <ul className="space-y-3 text-sm">
+                <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>今シーズンの観戦記録（10件まで）</span>
+                    <span>記録可能試合: 10件</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
                     <span>費用記録・集計表示</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span>
-                    <span>公式試合データの自動取得</span>
-                  </li>
                 </ul>
-                <div className="mt-6">
+                <div className="mt-4">
                   <a
                     href="/app"
-                    className="block w-full rounded-xl border border-slate-200 bg-white py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
+                    className="block w-full rounded-xl border border-slate-200 bg-white py-2 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
                   >
-                    無料で始める
+                    Freeで始める
+                  </a>
+                </div>
+              </div>
+            </FadeInSection>
+
+            <FadeInSection delay={50}>
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-full">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold">Plus</h3>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold">¥490</span>
+                    <span className="text-slate-500 text-sm">/月</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">シーズンを通して記録したい方に</p>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-600">✓</span>
+                    <span>記録可能試合: 30件</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-600">✓</span>
+                    <span>データエクスポート</span>
+                  </li>
+                </ul>
+                <div className="mt-4">
+                  <a
+                    href="/pricing"
+                    className="block w-full rounded-xl border border-slate-200 bg-white py-2 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
+                  >
+                    詳細を見る
                   </a>
                 </div>
               </div>
             </FadeInSection>
 
             <FadeInSection delay={100}>
-              <div className="rounded-2xl border-2 border-blue-600 bg-white p-6 shadow-lg relative">
+              <div className="rounded-2xl border-2 border-blue-600 bg-white p-5 shadow-lg relative h-full">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">おすすめ</span>
                 </div>
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold">Proプラン</h3>
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold">Pro</h3>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold">¥480</span>
-                    <span className="text-slate-500">/月</span>
+                    <span className="text-2xl font-bold">¥980</span>
+                    <span className="text-slate-500 text-sm">/月</span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500">全ての機能を使いたい方に</p>
+                  <p className="mt-1 text-xs text-slate-500">全ての試合を記録したい方に</p>
                 </div>
-                <ul className="space-y-3 text-sm">
+                <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>観戦記録（無制限）</span>
+                    <span>記録可能試合: 無制限</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>過去シーズンの記録（全期間）</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span>
-                    <span>データエクスポート（CSV）</span>
+                    <span>データエクスポート</span>
                   </li>
                 </ul>
-                <div className="mt-6">
+                <div className="mt-4">
                   <a
-                    href="/upgrade"
-                    className="block w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-3 text-center text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transition-all"
+                    href="/pricing"
+                    className="block w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 py-2 text-center text-sm font-semibold text-white hover:from-blue-700 hover:to-blue-800 transition-all"
                   >
-                    Proプランを申し込む
+                    詳細を見る
                   </a>
                 </div>
               </div>

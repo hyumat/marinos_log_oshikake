@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
+import { TRPCError } from '@trpc/server';
 import { protectedProcedure, router } from '../_core/trpc';
 import {
   getUserMatches,
@@ -13,7 +14,7 @@ import {
   deleteExpensesByUserMatch,
   getExpensesByUserMatch,
   logEvent,
-  getAttendanceCountForSeason,
+  getTotalAttendanceCount,
   getUserPlan,
 } from '../db';
 import { userMatches as userMatchesTable } from '../../drizzle/schema';
@@ -28,7 +29,7 @@ export const userMatchesRouter = router({
       try {
         const seasonYear = getCurrentSeasonYear();
         const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
-        const attendanceCount = await getAttendanceCountForSeason(ctx.user.id, seasonYear);
+        const attendanceCount = await getTotalAttendanceCount(ctx.user.id);
         
         const status = calculatePlanStatus(plan, planExpiresAt, attendanceCount);
         
@@ -43,6 +44,7 @@ export const userMatchesRouter = router({
           plan: 'free' as const,
           effectivePlan: 'free' as const,
           isPro: false,
+          isPlus: false,
           seasonYear: getCurrentSeasonYear(),
           attendanceCount: 0,
           limit: FREE_PLAN_LIMIT,
@@ -73,9 +75,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error listing matches:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to list user matches'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to list user matches'
+        });
       }
     }),
 
@@ -88,7 +92,10 @@ export const userMatchesRouter = router({
       try {
         const userMatch = await getUserMatchById(input.id, ctx.user.id);
         if (!userMatch) {
-          throw new Error('User match not found');
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'User match not found'
+          });
         }
         return {
           success: true,
@@ -96,9 +103,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error getting match:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to get user match'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to get user match'
+        });
       }
     }),
 
@@ -125,6 +134,19 @@ export const userMatchesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        if (input.status === 'attended') {
+          const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
+          const currentCount = await getTotalAttendanceCount(ctx.user.id);
+          
+          if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'LIMIT_REACHED',
+              cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+            });
+          }
+        }
+
         const result = await createUserMatch(ctx.user.id, {
           matchId: input.matchId,
           date: input.date,
@@ -148,9 +170,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error adding match:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to add match'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to add match'
+        });
       }
     }),
 
@@ -171,6 +195,24 @@ export const userMatchesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        if (input.status === 'attended') {
+          const existingMatch = await getUserMatchById(input.id, ctx.user.id);
+          const isNewAttendance = !existingMatch || existingMatch.status !== 'attended';
+          
+          if (isNewAttendance) {
+            const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
+            const currentCount = await getTotalAttendanceCount(ctx.user.id);
+            
+            if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+              throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'LIMIT_REACHED',
+                cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+              });
+            }
+          }
+        }
+
         const { id, ...updateData } = input;
         const result = await updateUserMatch(id, ctx.user.id, updateData);
 
@@ -181,9 +223,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error updating match:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to update match'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to update match'
+        });
       }
     }),
 
@@ -203,9 +247,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error deleting match:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to delete match'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to delete match'
+        });
       }
     }),
 
@@ -218,7 +264,10 @@ export const userMatchesRouter = router({
       try {
         const match = await getMatchById(input.matchId);
         if (!match) {
-          throw new Error('Match not found');
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Match not found'
+          });
         }
         return {
           success: true,
@@ -226,9 +275,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error getting match details:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to get match details'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to get match details'
+        });
       }
     }),
 
@@ -300,7 +351,10 @@ export const userMatchesRouter = router({
       try {
         const db = await getDb();
         if (!db) {
-          throw new Error('Database not available');
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Database not available'
+          });
         }
 
         const totalCost = input.expenses.transport + input.expenses.ticket + 
@@ -320,10 +374,14 @@ export const userMatchesRouter = router({
         
         if (isNewAttendance) {
           const { plan, planExpiresAt } = await getUserPlan(ctx.user.id);
-          const currentCount = await getAttendanceCountForSeason(ctx.user.id, seasonYear);
+          const currentCount = await getTotalAttendanceCount(ctx.user.id);
           
-          if (!canCreateAttendance(plan, planExpiresAt, seasonYear, currentCount)) {
-            throw new Error('LIMIT_REACHED');
+          if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'LIMIT_REACHED',
+              cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+            });
           }
         }
 
@@ -397,9 +455,11 @@ export const userMatchesRouter = router({
         };
       } catch (error) {
         console.error('[User Matches Router] Error saving attendance:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to save attendance'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to save attendance'
+        });
       }
     }),
 
@@ -412,7 +472,10 @@ export const userMatchesRouter = router({
       try {
         const db = await getDb();
         if (!db) {
-          throw new Error('Database not available');
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Database not available'
+          });
         }
 
         const results = await db.select()
@@ -439,9 +502,11 @@ export const userMatchesRouter = router({
         return { success: true, message: 'Deleted successfully' };
       } catch (error) {
         console.error('[User Matches Router] Error deleting by matchId:', error);
-        throw new Error(
-          error instanceof Error ? error.message : 'Failed to delete attendance'
-        );
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to delete attendance'
+        });
       }
     }),
 });

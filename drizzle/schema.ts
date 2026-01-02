@@ -17,8 +17,8 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  /** User plan: free or pro */
-  plan: mysqlEnum("plan", ["free", "pro"]).default("free").notNull(),
+  /** User plan: free, plus, or pro */
+  plan: mysqlEnum("plan", ["free", "plus", "pro"]).default("free").notNull(),
   /** Pro plan expiration date (null = no expiration / lifetime) */
   planExpiresAt: timestamp("planExpiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

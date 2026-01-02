@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Crown } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
 interface PlanStatusBadgeProps {
-  effectivePlan: 'free' | 'pro';
+  effectivePlan: 'free' | 'plus' | 'pro';
   attendanceCount: number;
   limit: number;
   remaining: number;
@@ -22,6 +22,15 @@ export function PlanStatusBadge({
       <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
         <Crown className="w-3 h-3 mr-1" />
         Pro
+      </Badge>
+    );
+  }
+
+  if (effectivePlan === 'plus') {
+    return (
+      <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+        <Sparkles className="w-3 h-3 mr-1" />
+        Plus ({attendanceCount}/{limit})
       </Badge>
     );
   }

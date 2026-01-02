@@ -21,6 +21,8 @@ function createMockDevUser(): User {
     email: "dev@example.com",
     loginMethod: "dev",
     role: "user",
+    plan: "free",
+    planExpiresAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

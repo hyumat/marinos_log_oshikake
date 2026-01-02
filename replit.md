@@ -40,6 +40,25 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #50, #51, #52, #53, #55, #56, #57, #58, #59, #60, #49 完了 - 3プラン対応+Stripe準備
+  - Issue #55: 3プラン対応（Free/Plus/Pro）
+    - shared/billing.ts: Plan型を'free'|'plus'|'pro'に拡張
+    - FREE_PLAN_LIMIT=10, PLUS_PLAN_LIMIT=30, Pro=無制限
+    - isPlus(), isPaidPlan(), getPlanLimit()関数追加
+    - drizzle/schema.ts: planを3値enumに更新
+  - Issue #59: Free制限をシーズン跨ぎリセットなしに変更
+    - getTotalAttendanceCount()で累計カウント
+    - canCreateAttendance()からseasonYear引数削除
+  - Issue #49: add/update全ルートに制限チェック追加
+  - Issue #53: TRPCErrorでエラー統一（code: 'FORBIDDEN', message: 'LIMIT_REACHED'）
+  - Issue #51: Cookie設定環境分岐（https→sameSite:none、http→sameSite:lax）
+  - Issue #52: dev fallback userにplan/planExpiresAtフィールド追加
+  - Issue #57+#56: docs/stripe.md作成（運用ガイド、Price ID管理、Webhook仕様）
+  - Issue #60: 「Freeプラン」「記録可能試合」表記に統一
+  - Issue #58: LP/Pricingページを3プラン×月/年トグル対応に刷新
+  - PlanStatusBadgeがPlusプラン対応
+  - 全174テストパス
+
 - 2026-01-02: GitHub Issue #50 完了 - 実効プラン値をAPIで統一（期限切れでもPro表示されない）
   - shared/billing.ts: getEffectivePlan()関数追加、PlanStatusにeffectivePlanフィールド追加
   - calculatePlanStatus()がeffectivePlanを返すように更新
