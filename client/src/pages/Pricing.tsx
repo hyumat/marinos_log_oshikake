@@ -7,6 +7,7 @@ import { Link } from "wouter";
 interface PlanFeature {
   text: string;
   included: boolean;
+  bold?: boolean;
 }
 
 interface PlanCardProps {
@@ -18,9 +19,10 @@ interface PlanCardProps {
   buttonText: string;
   buttonHref: string;
   highlighted?: boolean;
+  footnote?: string;
 }
 
-function PlanCard({ title, price, priceNote, description, features, buttonText, buttonHref, highlighted }: PlanCardProps) {
+function PlanCard({ title, price, priceNote, description, features, buttonText, buttonHref, highlighted, footnote }: PlanCardProps) {
   return (
     <Card className={`flex flex-col ${highlighted ? 'border-primary shadow-lg' : ''}`}>
       <CardHeader className="text-center">
@@ -40,12 +42,15 @@ function PlanCard({ title, price, priceNote, description, features, buttonText, 
               ) : (
                 <X className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
               )}
-              <span className={feature.included ? '' : 'text-muted-foreground'}>
+              <span className={`${feature.included ? '' : 'text-muted-foreground'} ${feature.bold ? 'font-medium' : ''}`}>
                 {feature.text}
               </span>
             </li>
           ))}
         </ul>
+        {footnote && (
+          <p className="mt-3 text-xs text-muted-foreground">{footnote}</p>
+        )}
       </CardContent>
       <CardFooter>
         <Link href={buttonHref} className="w-full">
@@ -62,27 +67,24 @@ export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
 
   const freePlanFeatures: PlanFeature[] = [
-    { text: '記録可能試合: 10件', included: true },
-    { text: '費用記録（交通費・チケット・飲食・その他）', included: true },
-    { text: '勝敗・費用の集計表示', included: true },
-    { text: '公式試合データの自動取得', included: true },
+    { text: '記録可能試合：10件まで', included: true, bold: true },
+    { text: 'メモと費用をまとめて残せる', included: true },
+    { text: '基本の集計で見返せる', included: true },
     { text: 'データエクスポート（CSV）', included: false },
   ];
 
   const plusPlanFeatures: PlanFeature[] = [
-    { text: '記録可能試合: 無制限', included: true },
-    { text: '費用記録（交通費・チケット・飲食・その他）', included: true },
-    { text: '勝敗・費用の集計表示', included: true },
-    { text: '公式試合データの自動取得', included: true },
+    { text: '記録可能試合：無制限', included: true, bold: true },
+    { text: '今のシーズンをしっかり残せる', included: true },
+    { text: '基本の集計で見返せる', included: true },
     { text: 'データエクスポート（CSV）', included: true },
   ];
 
   const proPlanFeatures: PlanFeature[] = [
-    { text: '記録可能試合: 無制限', included: true },
-    { text: '費用記録（交通費・チケット・飲食・その他）', included: true },
-    { text: '勝敗・費用の集計表示', included: true },
-    { text: '公式試合データの自動取得', included: true },
-    { text: 'データエクスポート（CSV）', included: true },
+    { text: '複数シーズンをまとめて管理', included: true, bold: true },
+    { text: 'CSVで書き出し（保存・共有に便利）', included: true },
+    { text: '支出の内訳や推移まで見える（高度集計）', included: true },
+    { text: '優先サポート', included: true },
   ];
 
   const plusPrice = isYearly ? '¥4,900' : '¥490';
@@ -96,7 +98,7 @@ export default function Pricing() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">料金プラン</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
-            おしかけログはFreeプランで始められます。より多くの試合を記録したい方には有料プランをご用意しています。
+            まずはFreeでお試し。気に入ったらPlus/Proで制限を解除できます。
           </p>
 
           <div className="inline-flex items-center gap-3 bg-muted p-1 rounded-lg">
@@ -128,6 +130,7 @@ export default function Pricing() {
             features={freePlanFeatures}
             buttonText="Freeで始める"
             buttonHref="/matches"
+            footnote="※「記録可能試合」は、観戦記録（観戦済み）として保存できる件数です。"
           />
           <PlanCard
             title="Plus"
@@ -136,7 +139,7 @@ export default function Pricing() {
             description="シーズンを通して記録したい方に"
             features={plusPlanFeatures}
             buttonText="Plusプランを申し込む"
-            buttonHref="/upgrade"
+            buttonHref="/upgrade?plan=plus"
           />
           <PlanCard
             title="Pro"
@@ -145,7 +148,7 @@ export default function Pricing() {
             description="全ての試合を記録したい方に"
             features={proPlanFeatures}
             buttonText="Proプランを申し込む"
-            buttonHref="/upgrade"
+            buttonHref="/upgrade?plan=pro"
             highlighted
           />
         </div>
@@ -154,21 +157,21 @@ export default function Pricing() {
           <h2 className="text-xl font-semibold mb-4">よくある質問</h2>
           <div className="max-w-2xl mx-auto space-y-6 text-left">
             <div>
-              <h3 className="font-medium mb-2">FreeプランからPlus/Proプランへの切り替えは？</h3>
+              <h3 className="font-medium mb-2">どこまでFreeで使えますか？</h3>
               <p className="text-muted-foreground">
-                いつでもアップグレードできます。Freeプランで記録したデータはそのまま引き継がれます。
+                Freeプランでは、観戦記録（観戦済み）を<strong>10件まで</strong>保存できます。メモや費用の記録、基本の集計もお試しいただけます。
               </p>
             </div>
             <div>
-              <h3 className="font-medium mb-2">有料プランを解約したらどうなりますか？</h3>
+              <h3 className="font-medium mb-2">「記録可能試合」って何ですか？</h3>
               <p className="text-muted-foreground">
-                解約後も記録したデータは保持されます。ただし、Freeプランの制限（10件まで）が適用されます。
+                観戦した試合を「観戦記録（観戦済み）」として保存できる件数のことです。予定（観戦予定）は上限に含みません。
               </p>
             </div>
             <div>
-              <h3 className="font-medium mb-2">支払い方法は？</h3>
+              <h3 className="font-medium mb-2">途中でプラン変更や解約はできますか？</h3>
               <p className="text-muted-foreground">
-                クレジットカード（Visa、Mastercard、JCB、American Express）でお支払いいただけます。
+                いつでも変更・解約できます。（決済画面の「管理ページ」から手続きできます）
               </p>
             </div>
           </div>

@@ -14,16 +14,16 @@ export default function LandingPageOshikakeLog() {
 
   const faq = [
     {
-      q: "費用はどんな項目で記録できますか？",
-      a: "交通費／チケット代／飲食代／その他の4カテゴリで記録できます。",
+      q: "どこまでFreeで使えますか？",
+      a: "Freeプランでは、観戦記録（観戦済み）を10件まで保存できます。メモや費用の記録、基本の集計もお試しいただけます。",
     },
     {
-      q: "過去シーズンも見返せますか？",
-      a: "年度の切り替えに対応しています。",
+      q: "「記録可能試合」って何ですか？",
+      a: "観戦した試合を「観戦記録（観戦済み）」として保存できる件数のことです。予定（観戦予定）は上限に含みません。",
     },
     {
-      q: "試合結果・試合予定はどこで見られますか？",
-      a: "試合一覧／試合詳細で確認できます。",
+      q: "途中でプラン変更や解約はできますか？",
+      a: "いつでも変更・解約できます。（決済画面の「管理ページ」から手続きできます）",
     },
   ];
 
@@ -304,7 +304,7 @@ export default function LandingPageOshikakeLog() {
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">料金プラン</div>
               <h2 className="mt-2 text-2xl font-bold md:text-3xl">Freeで始められます</h2>
               <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
-                おしかけログはFreeプランですぐに使えます。より多くの試合を記録したい方には有料プランをご用意しています。
+                まずはFreeでお試し。気に入ったらPlus/Proで制限を解除できます。
               </p>
             </div>
           </FadeInSection>
@@ -322,13 +322,18 @@ export default function LandingPageOshikakeLog() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>記録可能試合: 10件</span>
+                    <span className="font-medium">記録可能試合：10件まで</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>費用記録・集計表示</span>
+                    <span>メモと費用をまとめて残せる</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-600">✓</span>
+                    <span>基本の集計で見返せる</span>
                   </li>
                 </ul>
+                <p className="mt-3 text-xs text-slate-400">※「記録可能試合」は、観戦記録（観戦済み）として保存できる件数です。</p>
                 <div className="mt-4">
                   <a
                     href="/app"
@@ -353,11 +358,15 @@ export default function LandingPageOshikakeLog() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>記録可能試合: 30件</span>
+                    <span className="font-medium">記録可能試合：無制限</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>データエクスポート</span>
+                    <span>今のシーズンをしっかり残せる</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-600">✓</span>
+                    <span>基本の集計で見返せる</span>
                   </li>
                 </ul>
                 <div className="mt-4">
@@ -387,11 +396,15 @@ export default function LandingPageOshikakeLog() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>記録可能試合: 無制限</span>
+                    <span className="font-medium">複数シーズンをまとめて管理</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-600">✓</span>
-                    <span>データエクスポート</span>
+                    <span>CSVで書き出し（保存・共有に便利）</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-600">✓</span>
+                    <span>支出の内訳や推移まで見える</span>
                   </li>
                 </ul>
                 <div className="mt-4">

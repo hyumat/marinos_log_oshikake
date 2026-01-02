@@ -1,240 +1,53 @@
 # おしかけログ (Oshikake Log)
 
 ## Overview
-マリノスサポーター向け観戦記録サービス「おしかけログ」。横浜F・マリノスの公式試合データを取り込み、ユーザーが観戦した試合の記録と費用を蓄積。観戦試合の結果集計（勝敗）と費用集計（合計・平均）を行うWebアプリケーション。
+「おしかけログ」は、横浜F・マリノスのサポーター向けに特化した観戦記録Webアプリケーションです。ユーザーは観戦した公式試合の記録、それに伴う交通費、チケット代、飲食費などの費用を詳細に追跡できます。本サービスは、観戦記録から得られる勝敗、費用合計、平均費用などの統計データをユーザーに提供し、観戦体験の振り返りと費用管理をサポートすることを目的としています。将来的には、ユーザーエンゲージメントを高める新機能の追加や、よりパーソナライズされた体験の提供を目指しています。
 
-A Japanese-language web application for tracking Yokohama F. Marinos (J-League) match attendance. Users can log matches they've attended, track expenses (transportation, tickets, food), and view statistics about their match attendance history.
+## User Preferences
+特にありません。
 
-## Project Structure
-- `client/` - React frontend with Vite
-  - `src/pages/` - Page components (Home, Matches, MatchDetail, Landing)
-  - `src/components/` - UI components (shadcn/ui based)
-  - `src/lib/` - Utilities and tRPC client
-- `server/` - Express backend with tRPC
-  - `_core/` - Core server infrastructure (auth, Vite middleware, etc.)
-  - `routers/` - tRPC routers for API endpoints
-  - `db.ts` - Database operations with Drizzle ORM
-- `drizzle/` - Database schema and migrations
-- `shared/` - Shared types between client and server
+## System Architecture
+### UI/UX Decisions
+- **Color Scheme**: Uses the Marinos tricolor (blue #0022AA, white, red #C8102E) sparingly, with blue as the main color and red for minimal accents.
+- **Mobile-First Design**: The application is designed with a mobile-first approach, ensuring responsiveness across devices.
+- **Component Library**: Based on `shadcn/ui` components for a consistent and modern look.
+- **Design Refresh**: A comprehensive design refresh for the Landing Page, incorporating scroll animations (`FadeInSection`) and adhering to an 8pt spacing rule.
+- **Image Assets**: Uses seven custom-created images for the landing page (`lp-hero.png`, `lp-pain.png`, `lp-step-1/2/3.png`, `lp-stats.png`, `lp-future.png`) with no internal text.
+- **Icons**: Implemented favicons and PWA-related icons (`favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `maskable-icon-512.png`, `og-image.png`, `manifest.webmanifest`).
 
-## Tech Stack
-- **Frontend**: React 19, Vite 7, TailwindCSS 4, shadcn/ui components
-- **Backend**: Express, tRPC
-- **Database**: MySQL via Drizzle ORM
+### Technical Implementations
+- **Frontend**: Developed with React 19, Vite 7, and TailwindCSS 4. It includes pages for Home, Matches, MatchDetail, and Landing, along with reusable UI components and a tRPC client.
+- **Backend**: Built with Express and tRPC, managing core server infrastructure (authentication, Vite middleware), API endpoints via tRPC routers, and database operations.
+- **Database**: Utilizes MySQL with Drizzle ORM for schema definition and migrations. Includes tables for `userMatches`, `matchExpenses`, `auditLogs`, and `eventLogs`.
+- **Shared Utilities**: A `shared/` directory contains types and utilities used by both client and server, including DTOs (`MatchDTO`, `StatsSummaryDTO`) and formatters (`formatCurrency`, `formatDateTime`, `formatWDL`, `formatScore`, `calcAverage`).
+- **Billing System**: Implemented a 3-tier (Free/Plus/Pro) subscription model with Stripe integration for checkout, portal sessions, and webhook handling. Features include entitlement management (`getEntitlements`), plan limits (`getPlanLimit`), and effective plan calculation (`getEffectivePlan`).
+- **Match Data Management**: Features include:
+    - Storing match attendance and expense data in the database.
+    - Retrieving official match data from external sources (e.g., Marinos official website) via `unified-scraper.ts`.
+    - Normalizing `matchUrl` and generating `matchKey` to prevent duplicates.
+    - Tracking sync logs (`syncLog`) for scraper operations.
+- **Statistics Module**: Provides APIs (`stats.getSummary`, `stats.getAvailableYears`) for calculating and displaying attendance counts, win/draw/loss records, total expenses, and average expenses per match, with support for year selection.
+- **User Authentication**: Handled via session secrets and includes OAuth warning level adjustments to allow app functionality without authentication.
+- **Error Handling**: Standardized error display using `TRPCError` with a `LIMIT_REACHED` code for plan restrictions, and unified error presentation using `QueryState` components.
+- **Deployment**: Configured for Replit environment, including Vite configuration for proxy and server binding.
+
+### Feature Specifications
+- **Attendance Logging**: Users can record matches they attended, including detailed expense tracking (transportation, tickets, food, other).
+- **Match Display**: Visual distinction between past and future matches, color-coded HOME/AWAY badges, tournament and section information, and Google Maps links for venues.
+- **Statistics Dashboard**: Displays aggregated data (total matches, win/draw/loss record, total cost, average cost) with filtering by year.
+- **Subscription Plans**: Free, Plus, and Pro plans with varying limits on recorded matches and access to advanced features (e.g., export, multi-season, advanced stats, priority support).
+- **Landing Page**: Comprehensive landing page explaining the service, including FAQs, and a pricing comparison table.
+- **UX Improvements**: Enhanced attendance form UX with placeholders and validation, improved error display, responsive mobile design, and asynchronous data synchronization with loading and toast notifications.
+
+## External Dependencies
+- **Database**: MySQL
+- **Payment Gateway**: Stripe (for billing and subscription management)
+- **Frontend Framework**: React
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **UI Components**: shadcn/ui
+- **ORM**: Drizzle ORM
+- **API Layer**: tRPC
+- **Server Framework**: Express
 - **Package Manager**: pnpm
-
-## Running the Application
-- Development: `pnpm run dev` (runs on port 5000)
-- Build: `pnpm run build`
-- Production: `pnpm run start`
-
-## Environment Variables
-- `DATABASE_URL` - MySQL connection string (required for database features)
-- `SESSION_SECRET` - Session secret for authentication
-- `VITE_ANALYTICS_ENDPOINT` - Optional analytics endpoint
-- `VITE_ANALYTICS_WEBSITE_ID` - Optional analytics website ID
-
-## Design
-- カラースキーム: マリノストリコロール（青 #0022AA、白、赤 #C8102E）を控えめに使用
-- モバイルファースト設計
-- shadcn/ui コンポーネントベース
-
-## Recent Changes
-- 2026-01-02: GitHub Issue #55 完了 - Stripe課金実装
-  - server/stripeClient.ts: Replit Connector API経由でStripe認証情報を取得
-  - server/routers/billing.ts: createCheckoutSession, createPortalSession, getPrices, getSubscriptionStatus API
-  - server/webhookHandler.ts: Stripeイベント処理（checkout完了、subscription更新/削除、支払い成功/失敗）
-  - server/_core/index.ts: Webhookルートをexpress.json()の前に登録
-  - server/db.ts: updateUserStripeInfo, getUserByStripeCustomerId, getUserById関数追加
-  - drizzle/schema.ts: users.stripeCustomerId, users.stripeSubscriptionIdカラム追加
-  - client/src/pages/Upgrade.tsx: プラン選択・月/年トグル・Checkout呼び出し対応
-  - scripts/seed-products.ts: StripeにPlus/Pro製品作成スクリプト
-  - 全181テストパス
-
-- 2026-01-02: GitHub Issue #67 完了 - Feature Gate / Entitlements一元管理
-  - shared/billing.ts: Entitlements型、getEntitlements()関数を追加
-  - PlanStatusにentitlementsフィールドを追加
-  - 各プランの権限（canExport, canMultiSeason, canAdvancedStats, canPrioritySupport）を定義
-  - 7件の新規テスト追加、全181テストパス
-
-- 2026-01-02: GitHub Issue #69 完了 - Plus/Proを無制限に統一
-  - shared/billing.ts: PLUS_PLAN_LIMIT削除、getPlanLimit()でPlus/Proは両方Infinity
-  - Pricing.tsx, Upgrade.tsx: 「記録可能試合: 無制限」表記に統一
-  - billing.test.ts: Plus制限テストを無制限テストに更新
-  - docs/billing-design.md更新
-
-- 2026-01-02: GitHub Issue #68 完了 - getUserPlan()のPlus対応
-  - server/db.ts: 戻り値型を'free'|'pro'からPlan型に修正
-  - shared/billing.tsからPlan型をインポート
-  - Plusプランユーザーが正しくプランを取得できるように
-
-- 2026-01-02: GitHub Issue #50, #51, #52, #53, #55, #56, #57, #58, #59, #60, #49 完了 - 3プラン対応+Stripe準備
-  - Issue #55: 3プラン対応（Free/Plus/Pro）
-    - shared/billing.ts: Plan型を'free'|'plus'|'pro'に拡張
-    - FREE_PLAN_LIMIT=10, PLUS_PLAN_LIMIT=30, Pro=無制限
-    - isPlus(), isPaidPlan(), getPlanLimit()関数追加
-    - drizzle/schema.ts: planを3値enumに更新
-  - Issue #59: Free制限をシーズン跨ぎリセットなしに変更
-    - getTotalAttendanceCount()で累計カウント
-    - canCreateAttendance()からseasonYear引数削除
-  - Issue #49: add/update全ルートに制限チェック追加
-  - Issue #53: TRPCErrorでエラー統一（code: 'FORBIDDEN', message: 'LIMIT_REACHED'）
-  - Issue #51: Cookie設定環境分岐（https→sameSite:none、http→sameSite:lax）
-  - Issue #52: dev fallback userにplan/planExpiresAtフィールド追加
-  - Issue #57+#56: docs/stripe.md作成（運用ガイド、Price ID管理、Webhook仕様）
-  - Issue #60: 「Freeプラン」「記録可能試合」表記に統一
-  - Issue #58: LP/Pricingページを3プラン×月/年トグル対応に刷新
-  - PlanStatusBadgeがPlusプラン対応
-  - 全174テストパス
-
-- 2026-01-02: GitHub Issue #50 完了 - 実効プラン値をAPIで統一（期限切れでもPro表示されない）
-  - shared/billing.ts: getEffectivePlan()関数追加、PlanStatusにeffectivePlanフィールド追加
-  - calculatePlanStatus()がeffectivePlanを返すように更新
-  - PlanStatusBadgeがeffectivePlanを使用（期限切れProはFreeとして表示）
-  - MatchDetail.tsxがeffectivePlanをPlanStatusBadgeに渡すよう更新
-  - 5件の新規テスト追加（getEffectivePlan、effectivePlan関連）
-  - 全161テストパス
-
-- 2026-01-01: GitHub Issue #44 完了 - 無料プラン制限（今季10件まで）
-  - shared/billing.ts: FREE_PLAN_LIMIT, isPro, canCreateAttendance, calculatePlanStatus
-  - server/db.ts: getAttendanceCountForSeason, getUserPlan
-  - userMatches.getPlanStatus API追加
-  - saveAttendance APIに制限チェック追加（LIMIT_REACHEDエラー）
-  - LimitReachedModal, PlanStatusBadgeコンポーネント作成
-  - MatchDetail.tsxに制限表示・モーダル統合
-  - /pricing 料金プランページ追加（無料・Proプラン比較）
-  - LPフッターに料金リンク追加
-  - 15件のbilling.test.ts追加、全156テストパス
-
-- 2026-01-01: GitHub Issue #19, #27, #28, #29, #30, #31, #32, #33, #47 完了 - MVPリリース直前仕上げ
-  - Issue #47: セキュリティ+アナリティクス設計
-    - matchExpenses, auditLogs, eventLogsテーブル追加
-    - seasonYearフィールドをuserMatchesに追加
-    - docs/security.md, docs/analytics.md作成
-  - Issue #19: 費用データのDB永続化
-    - LocalStorage → DB統一
-    - userMatches.saveAttendance/getByMatchId/deleteByMatchId APIを実装
-    - MatchDetail.tsxをDB-backed tRPC APIに移行
-  - Issue #31: 観戦記録フォームUX改善
-    - プレースホルダー「例）2400」「例）5000」等を追加
-    - バリデーション文言が自然な日本語
-  - Issue #29: エラー表示統一（QueryState共通コンポーネント使用）
-  - Issue #30: Stats表示調整（0件表示、年切替、数字フォーマット済み）
-  - Issue #32: モバイル表示はレスポンシブ対応済み
-  - Issue #28: 同期ボタンUX（ローディング、トースト、二重実行防止済み）
-  - Issue #33: docs/release-checklist.md作成
-  - 全141テストパス
-
-- 2025-12-31: GitHub Issue #34, #35, #40, #41, #42, #43 完了 - LP全面刷新
-  - Issue #40: LP文言を確定稿に全面差し替え
-    - Hero: 「観戦の記録と、観戦にかかった費用を"ちゃんと残す"。」
-    - 共感→危機→解決→期待の心理導線
-    - FAQ 3問に整理
-  - Issue #35: alt/meta/OGP監査
-    - index.htmlにmeta description, OGPタグを追加
-    - 禁止語ゼロ確認
-  - Issue #41: デザイン刷新（Land-book級）
-    - FadeInSectionによるスクロールアニメーション
-    - 控えめトリコロール（青メイン、赤アクセント最小）
-    - 8pt系余白ルール適用
-  - Issue #42: LP画像7点を作成・実装
-    - lp-hero.png, lp-pain.png, lp-step-1/2/3.png, lp-stats.png, lp-future.png
-    - 画像内テキストなし
-    - client/public/lp/に配置
-  - Issue #43: アイコン導入
-    - favicon-16x16.png, favicon-32x32.png, apple-touch-icon.png
-    - icons/icon-192.png, icon-512.png, maskable-icon-512.png, og-image.png
-    - manifest.webmanifest作成
-
-- 2025-12-31: GitHub Issue #36, #37, #38, #39 完了 - リファクタリング
-  - Issue #36: 共通Formatter導入（formatCurrency, formatDateTime, formatWDL, formatScore, calcAverage）
-    - shared/formatters.ts に集約、20件のユニットテスト
-    - 全ページで統一表示（NaN/undefined表示なし）
-  - Issue #37: API DTO定義とNull安全性強化
-    - shared/dto.ts: MatchDTO, StatsSummaryDTO, toMatchDTO, createEmptyStatsSummary
-    - 7件のDTOテスト
-  - Issue #38: QueryState共通コンポーネント
-    - QueryLoading, QueryError, QueryEmpty, QueryState コンポーネント
-    - Stats.tsx, MatchDetail.tsx で使用
-  - Issue #39: MatchDetail View/Form分離
-    - MatchDetailView: 試合情報表示
-    - UserMatchForm: 費用入力フォーム
-    - shared/validation.ts: validateExpenseData, calculateTotalCost + 10件テスト
-  - 合計141テストパス
-
-- 2025-12-31: GitHub Issue #25 & #26 完了
-  - Issue #25: LP文言全面見直し
-    - 「マリノスサポーター」表現を完全削除
-    - 「Jリーグ公式試合情報」「公式データ」強調を回避
-    - 「観戦記録を続けられる」「振り返り・費用管理」に価値訴求をシフト
-  - Issue #26: LP用スクショ画像3点を差し替え（参考画像スタイル適用）
-    - match_list_app_screenshot.png: 試合一覧画面、シンプルiOSスタイル
-    - match_log_form_screenshot.png: 観戦記録フォーム（参考画像に準拠）
-    - stats_dashboard_screenshot.png: 集計画面、クリーンなミニマルデザイン
-    - フェイクエンブレム撤去、エンブレムなしのシンプルデザイン
-
-- 2025-12-31: GitHub Issue #12 完了 - LP開発用語削除・日本語改善
-  - JSON-LD/フォールバック/MVP/PWA/Mobile-first/MD等の開発用語を削除
-  - FAQ/ロードマップをユーザー向け日本語に書き換え
-  - ヘッダーは独自ロゴ「お」で偽エンブレム問題なし
-
-- 2025-12-31: LSPエラー修正・OAuth警告レベル変更
-  - scraper.tsから6つのユーティリティ関数をエクスポート
-  - scraper.test.tsで実際の関数をインポートしてテスト（インライン実装を削除）
-  - OAuthのエラーメッセージを警告に変更（認証なしでもアプリ動作可能）
-  - 全104テストパス
-
-- 2025-12-31: GitHub Issue #10 & #11 完了
-  - Issue #11: matchUrl正規化とgenerateMatchKey()による重複防止
-  - Issue #10: syncLog永続化（URL/status/exception/duration/counts追跡）
-  - unified-scraperテスト9件追加
-
-- 2025-12-30: StatsページUI改善 (GitHub Issue #2)
-  - APIレスポンス形式を新構造に対応: cost.total, record.win等
-  - エラー状態に再試行ボタンを追加
-  - DB接続エラー時のグレースフルフォールバック（空結果を返す）
-  - 0件時の空表示、エラー時の再試行、円表示対応を確認
-
-- 2025-12-30: Stats集計バックエンド改善 (GitHub Issue #1)
-  - stats.getSummary API: matchesテーブルとJOINしてhomeScore/awayScoreから勝敗判定
-  - 出力形式を仕様に準拠: { period, watchCount, record: {win, draw, loss, unknown}, cost: {total, averagePerMatch} }
-  - calculateResult関数を追加（勝敗判定ロジックを分離）
-  - ユニットテスト追加: 23件（0件/勝ち/負け/引き分け/unknown混在ケースをカバー）
-
-- 2025-12-30: マッチ詳細ページ実装
-  - 観戦費用記録機能（交通費/チケット代/飲食代/その他）
-  - LocalStorageで費用データを永続化
-  - スコア表示（過去試合のみ）
-  - 観戦ステータス管理（参加/不参加/未定）を一覧ページに統合
-
-- 2025-12-29: マッチログ機能改善（第2弾）
-  - 終了試合と今後の予定を視覚的に区別（ボーダー色、バッジ）
-  - HOME/AWAYを色分けバッジで表示（青/赤）
-  - 大会名・節情報を独立バッジで表示
-  - 会場名にGoogle Mapsリンクを追加
-  - マリノス公式サイトからの今後の試合取得を追加（unified-scraper.ts）
-  - 今後の試合を先頭にソートして表示
-
-- 2025-12-29: マッチログ機能改善（第1弾）
-  - スコア表示バグ修正（undefined-undefined → vs表示）
-  - 手動更新ボタン追加（公式から取得）、ページ読み込み時の自動スクレイピングを廃止
-  - エラーハンドリング改善：DB接続失敗時もテストデータで動作
-  - success flagチェック追加でスクレイパー失敗をUIに反映
-
-- 2025-12-29: LPリブランディング
-  - サービス名を「おしかけログ」に変更
-  - マリノスカラー（トリコロール：青・白・赤）を控えめに適用
-  - 使い方セクションに説明画像3枚を追加（attached_assets/generated_images/）
-  - Vite設定でattached_assetsへのアクセスを許可
-
-- 2025-12-29: Stats機能を実装 (MVP)
-  - stats.getSummary API: 観戦数、勝分敗、費用合計、平均費用を返す
-  - stats.getAvailableYears API: 観戦記録がある年のリストを返す
-  - /stats ページ: 年セレクト付きの集計画面
-  - Empty状態とError UIを実装
-  - ナビゲーションに「集計」リンクを追加
-  
-- 2025-12-29: Configured for Replit environment
-  - Updated Vite config to allow all hosts for Replit proxy
-  - Updated server to bind to 0.0.0.0:5000
-  - Set up deployment configuration
+- **Analytics**: Optional integration via `VITE_ANALYTICS_ENDPOINT` and `VITE_ANALYTICS_WEBSITE_ID`
