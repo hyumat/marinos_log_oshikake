@@ -61,6 +61,13 @@
 - **Analytics**: Optional integration via `VITE_ANALYTICS_ENDPOINT` and `VITE_ANALYTICS_WEBSITE_ID`
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #73 完了 - 「まずFreeで登録」導線に統一（認証必須化）
+  - LP: ヘッダーに「ログイン」「無料で登録」ボタン追加
+  - LP: Hero CTAを「無料で登録して始める」「ログイン」に変更
+  - /loginページ新規作成
+  - AuthGuardコンポーネント追加（保護ルート用）
+  - App.tsx: /app, /matches, /stats等を認証必須に変更
+  - dev fallback userは既にENV.isProductionで本番無効化済み
 - 2026-01-02: GitHub Issue #70 完了 - LP/機能説明から「Jリーグ公式/公式データ」強調を削除
   - Home.tsx: 「Jリーグ公式サイトから」「スクレイピング」を削除
   - Matches.tsx: 「公式から取得」→「最新に更新」に変更
