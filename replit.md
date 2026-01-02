@@ -40,6 +40,11 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #68 完了 - getUserPlan()のPlus対応
+  - server/db.ts: 戻り値型を'free'|'pro'からPlan型に修正
+  - shared/billing.tsからPlan型をインポート
+  - Plusプランユーザーが正しくプランを取得できるように
+
 - 2026-01-02: GitHub Issue #50, #51, #52, #53, #55, #56, #57, #58, #59, #60, #49 完了 - 3プラン対応+Stripe準備
   - Issue #55: 3プラン対応（Free/Plus/Pro）
     - shared/billing.ts: Plan型を'free'|'plus'|'pro'に拡張

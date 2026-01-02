@@ -13,6 +13,7 @@ import {
   InsertAuditLog, InsertEventLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { Plan } from '../shared/billing';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -400,7 +401,7 @@ export async function getTotalAttendanceCount(userId: number): Promise<number> {
   }
 }
 
-export async function getUserPlan(userId: number): Promise<{ plan: 'free' | 'pro'; planExpiresAt: Date | null }> {
+export async function getUserPlan(userId: number): Promise<{ plan: Plan; planExpiresAt: Date | null }> {
   const db = await getDb();
   if (!db) {
     console.warn('[Database] Cannot get user plan: database not available');
@@ -421,7 +422,7 @@ export async function getUserPlan(userId: number): Promise<{ plan: 'free' | 'pro
     }
     
     return {
-      plan: result[0].plan as 'free' | 'pro',
+      plan: result[0].plan as Plan,
       planExpiresAt: result[0].planExpiresAt,
     };
   } catch (error) {
