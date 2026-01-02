@@ -64,6 +64,8 @@
 - 2026-01-02: GitHub Issue #76 完了 - ログイン時のアカウントメニュー表示
   - AccountMenuコンポーネント作成（アカウント/プラン・お支払い/設定/サポート/ログアウト）
   - DashboardLayoutモバイルヘッダーにAccountMenu追加
+  - PublicHeader共通コンポーネント作成（Pricing/Privacy/Terms/Supportで使用）
+  - 全パブリックページでログイン状態に応じたAccountMenu/ログインボタン表示
   - Landingページヘッダー：ログイン状態でAccountMenu表示、未ログインでログイン/登録ボタン表示
   - Hero/CTA：ログイン時は「ダッシュボードへ」に変更
   - ログアウト後はLPにリダイレクト
