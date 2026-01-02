@@ -1,10 +1,41 @@
-import { ArrowLeft, Check, Sparkles, Infinity, Calendar, Download } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Check, Sparkles, Infinity, Calendar, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useLocation } from 'wouter';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 export default function Upgrade() {
   const [, setLocation] = useLocation();
+  const [isYearly, setIsYearly] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const { data: user } = trpc.auth.me.useQuery();
+  const createCheckoutSession = trpc.billing.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (error) => {
+      toast.error('エラーが発生しました。もう一度お試しください。');
+      console.error('Checkout error:', error);
+      setLoadingPlan(null);
+    },
+  });
+
+  const handleSubscribe = (plan: 'plus' | 'pro') => {
+    if (!user) {
+      toast.error('ログインしてください');
+      return;
+    }
+    setLoadingPlan(plan);
+    createCheckoutSession.mutate({
+      plan,
+      cycle: isYearly ? 'yearly' : 'monthly',
+    });
+  };
 
   const freeFeatures = [
     '記録可能試合: 10件',
@@ -27,6 +58,11 @@ export default function Upgrade() {
     '優先サポート',
   ];
 
+  const plusPrice = isYearly ? '¥4,900' : '¥490';
+  const plusPriceNote = isYearly ? '/年' : '/月';
+  const proPrice = isYearly ? '¥9,800' : '¥980';
+  const proPriceNote = isYearly ? '/年' : '/月';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl mx-auto px-4 py-8">
@@ -40,14 +76,34 @@ export default function Upgrade() {
           マッチログに戻る
         </Button>
 
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">
             もっと観戦を楽しむために
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-muted-foreground max-w-xl mx-auto mb-6">
             有料プランで、より多くの試合を記録できます。
             あなたの観戦履歴をまとめて管理しましょう。
           </p>
+
+          <div className="inline-flex items-center gap-3 bg-muted p-1 rounded-lg">
+            <button
+              onClick={() => setIsYearly(false)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                !isYearly ? 'bg-background shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              月払い
+            </button>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isYearly ? 'bg-background shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              年払い
+              <span className="ml-1 text-xs text-green-600">2ヶ月分お得</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -84,8 +140,8 @@ export default function Upgrade() {
               <CardTitle>Plus</CardTitle>
               <CardDescription>シーズンを通して記録</CardDescription>
               <div className="pt-4">
-                <span className="text-3xl font-bold">¥490</span>
-                <span className="text-muted-foreground">/月</span>
+                <span className="text-3xl font-bold">{plusPrice}</span>
+                <span className="text-muted-foreground">{plusPriceNote}</span>
               </div>
             </CardHeader>
             <CardContent>
@@ -99,9 +155,17 @@ export default function Upgrade() {
               </ul>
               <Button
                 className="w-full mt-6"
-                disabled
+                onClick={() => handleSubscribe('plus')}
+                disabled={loadingPlan !== null || !user}
               >
-                近日公開予定
+                {loadingPlan === 'plus' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    処理中...
+                  </>
+                ) : (
+                  'Plusを申し込む'
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -115,8 +179,8 @@ export default function Upgrade() {
               <CardTitle>Pro</CardTitle>
               <CardDescription>すべての機能を解放</CardDescription>
               <div className="pt-4">
-                <span className="text-3xl font-bold">¥980</span>
-                <span className="text-muted-foreground">/月</span>
+                <span className="text-3xl font-bold">{proPrice}</span>
+                <span className="text-muted-foreground">{proPriceNote}</span>
               </div>
             </CardHeader>
             <CardContent>
@@ -130,9 +194,17 @@ export default function Upgrade() {
               </ul>
               <Button
                 className="w-full mt-6"
-                disabled
+                onClick={() => handleSubscribe('pro')}
+                disabled={loadingPlan !== null || !user}
               >
-                近日公開予定
+                {loadingPlan === 'pro' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    処理中...
+                  </>
+                ) : (
+                  'Proを申し込む'
+                )}
               </Button>
             </CardContent>
           </Card>

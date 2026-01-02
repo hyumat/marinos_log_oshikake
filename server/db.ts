@@ -592,3 +592,75 @@ export async function logEvent(eventName: string, userId?: number, eventData?: R
     seasonYear: seasonYear ?? null,
   });
 }
+
+// ========== Stripe Operations ==========
+
+export async function updateUserStripeInfo(userId: number, data: {
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string | null;
+  plan?: Plan;
+  planExpiresAt?: Date | null;
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot update user stripe info: database not available');
+    return undefined;
+  }
+  
+  try {
+    const updateData: Record<string, unknown> = {};
+    if (data.stripeCustomerId !== undefined) updateData.stripeCustomerId = data.stripeCustomerId;
+    if (data.stripeSubscriptionId !== undefined) updateData.stripeSubscriptionId = data.stripeSubscriptionId;
+    if (data.plan !== undefined) updateData.plan = data.plan;
+    if (data.planExpiresAt !== undefined) updateData.planExpiresAt = data.planExpiresAt;
+    
+    const result = await db.update(users)
+      .set(updateData)
+      .where(eq(users.id, userId));
+    
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to update user stripe info:', error);
+    throw error;
+  }
+}
+
+export async function getUserByStripeCustomerId(stripeCustomerId: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get user by stripe customer id: database not available');
+    return undefined;
+  }
+  
+  try {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, stripeCustomerId))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error('[Database] Failed to get user by stripe customer id:', error);
+    return undefined;
+  }
+}
+
+export async function getUserById(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn('[Database] Cannot get user by id: database not available');
+    return undefined;
+  }
+  
+  try {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error('[Database] Failed to get user by id:', error);
+    return undefined;
+  }
+}
