@@ -5,11 +5,22 @@
  * Issue #55: 3プラン対応（Free/Plus/Pro）
  * Issue #59: シーズン跨ぎでリセットされない
  * Issue #69: Plus/Pro両方を無制限に統一
+ * Issue #67: Feature Gate / Entitlements一元管理
  */
 
 export const FREE_PLAN_LIMIT = 10;
 
 export type Plan = 'free' | 'plus' | 'pro';
+
+export interface Entitlements {
+  effectivePlan: Plan;
+  maxAttendances: number | null;
+  canAddAttendance: boolean;
+  canExport: boolean;
+  canMultiSeason: boolean;
+  canAdvancedStats: boolean;
+  canPrioritySupport: boolean;
+}
 
 export interface PlanStatus {
   plan: Plan;
@@ -21,6 +32,7 @@ export interface PlanStatus {
   limit: number;
   remaining: number;
   canCreate: boolean;
+  entitlements: Entitlements;
 }
 
 export function getCurrentSeasonYear(): number {
@@ -65,6 +77,27 @@ export function canCreateAttendance(
   return currentCount < limit;
 }
 
+export function getEntitlements(
+  plan: Plan,
+  planExpiresAt: Date | null,
+  currentAttendanceCount: number
+): Entitlements {
+  const effective = getEffectivePlan(plan, planExpiresAt);
+  const limit = getPlanLimit(plan, planExpiresAt);
+  const maxAttendances = limit === Infinity ? null : limit;
+  const canAddAttendance = currentAttendanceCount < limit;
+  
+  return {
+    effectivePlan: effective,
+    maxAttendances,
+    canAddAttendance,
+    canExport: effective === 'plus' || effective === 'pro',
+    canMultiSeason: effective === 'pro',
+    canAdvancedStats: effective === 'pro',
+    canPrioritySupport: effective === 'pro',
+  };
+}
+
 export function calculatePlanStatus(
   plan: Plan,
   planExpiresAt: Date | null,
@@ -77,6 +110,7 @@ export function calculatePlanStatus(
   const limit = getPlanLimit(plan, planExpiresAt);
   const remaining = limit === Infinity ? Infinity : Math.max(0, limit - attendanceCount);
   const canCreate = attendanceCount < limit;
+  const entitlements = getEntitlements(plan, planExpiresAt, attendanceCount);
 
   return {
     plan,
@@ -88,5 +122,6 @@ export function calculatePlanStatus(
     limit,
     remaining,
     canCreate,
+    entitlements,
   };
 }

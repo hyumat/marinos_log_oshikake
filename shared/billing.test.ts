@@ -8,6 +8,7 @@ import {
   calculatePlanStatus,
   getCurrentSeasonYear,
   getPlanLimit,
+  getEntitlements,
 } from './billing';
 
 describe('billing utilities', () => {
@@ -224,6 +225,72 @@ describe('billing utilities', () => {
       expect(status.limit).toBe(10);
       expect(status.remaining).toBe(5);
       expect(status.canCreate).toBe(true);
+    });
+
+    it('should include entitlements in plan status', () => {
+      const status = calculatePlanStatus('pro', null, 50);
+      expect(status.entitlements).toBeDefined();
+      expect(status.entitlements.effectivePlan).toBe('pro');
+      expect(status.entitlements.canAddAttendance).toBe(true);
+    });
+  });
+
+  describe('getEntitlements', () => {
+    it('should return correct entitlements for free user', () => {
+      const entitlements = getEntitlements('free', null, 5);
+      expect(entitlements.effectivePlan).toBe('free');
+      expect(entitlements.maxAttendances).toBe(10);
+      expect(entitlements.canAddAttendance).toBe(true);
+      expect(entitlements.canExport).toBe(false);
+      expect(entitlements.canMultiSeason).toBe(false);
+      expect(entitlements.canAdvancedStats).toBe(false);
+      expect(entitlements.canPrioritySupport).toBe(false);
+    });
+
+    it('should block attendance for free user at limit', () => {
+      const entitlements = getEntitlements('free', null, 10);
+      expect(entitlements.canAddAttendance).toBe(false);
+    });
+
+    it('should return correct entitlements for plus user', () => {
+      const entitlements = getEntitlements('plus', null, 100);
+      expect(entitlements.effectivePlan).toBe('plus');
+      expect(entitlements.maxAttendances).toBe(null);
+      expect(entitlements.canAddAttendance).toBe(true);
+      expect(entitlements.canExport).toBe(true);
+      expect(entitlements.canMultiSeason).toBe(false);
+      expect(entitlements.canAdvancedStats).toBe(false);
+      expect(entitlements.canPrioritySupport).toBe(false);
+    });
+
+    it('should return correct entitlements for pro user', () => {
+      const entitlements = getEntitlements('pro', null, 1000);
+      expect(entitlements.effectivePlan).toBe('pro');
+      expect(entitlements.maxAttendances).toBe(null);
+      expect(entitlements.canAddAttendance).toBe(true);
+      expect(entitlements.canExport).toBe(true);
+      expect(entitlements.canMultiSeason).toBe(true);
+      expect(entitlements.canAdvancedStats).toBe(true);
+      expect(entitlements.canPrioritySupport).toBe(true);
+    });
+
+    it('should treat expired pro as free', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      const entitlements = getEntitlements('pro', past, 5);
+      expect(entitlements.effectivePlan).toBe('free');
+      expect(entitlements.maxAttendances).toBe(10);
+      expect(entitlements.canExport).toBe(false);
+      expect(entitlements.canMultiSeason).toBe(false);
+    });
+
+    it('should treat expired plus as free', () => {
+      const past = new Date();
+      past.setFullYear(past.getFullYear() - 1);
+      const entitlements = getEntitlements('plus', past, 5);
+      expect(entitlements.effectivePlan).toBe('free');
+      expect(entitlements.maxAttendances).toBe(10);
+      expect(entitlements.canExport).toBe(false);
     });
   });
 });
