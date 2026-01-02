@@ -61,6 +61,13 @@
 - **Analytics**: Optional integration via `VITE_ANALYTICS_ENDPOINT` and `VITE_ANALYTICS_WEBSITE_ID`
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #54 完了 - LP「共感→危機→解決→期待」心理導線で改善
+  - Heroサブコピー：残せる3点（観戦メモ/費用/試合情報）を明記
+  - Pain：放置リスク追加、カード文言を自然な日本語に
+  - Features：ベネフィット寄りタイトルに変更
+  - Steps：安心材料（無料10試合/編集可能）追加
+  - FAQ：無料範囲/データ保持/対応端末を追加
+  - CTA：全て「無料で始める」に統一
 - 2026-01-02: GitHub Issue #61 完了 - 原体験をプロダクト原則として文書化
   - docs/product-principles.md: プロダクト原則（4つの固定原則、ガードレール、プラン差別化の軸）
   - docs/roadmap.md: 実装ロードマップ（MVP完了済み、v0.2+の優先順位）
