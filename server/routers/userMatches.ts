@@ -18,7 +18,7 @@ import {
   getUserPlan,
 } from '../db';
 import { userMatches as userMatchesTable } from '../../drizzle/schema';
-import { FREE_PLAN_LIMIT, getCurrentSeasonYear, canCreateAttendance, calculatePlanStatus } from '../../shared/billing';
+import { FREE_PLAN_LIMIT, getCurrentSeasonYear, canCreateAttendance, calculatePlanStatus, getPlanLimit } from '../../shared/billing';
 
 export const userMatchesRouter = router({
   /**
@@ -139,10 +139,11 @@ export const userMatchesRouter = router({
           const currentCount = await getTotalAttendanceCount(ctx.user.id);
           
           if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+            const limit = getPlanLimit(plan, planExpiresAt);
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'LIMIT_REACHED',
-              cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+              cause: { type: 'LIMIT_REACHED', currentCount, limit }
             });
           }
         }
@@ -204,10 +205,11 @@ export const userMatchesRouter = router({
             const currentCount = await getTotalAttendanceCount(ctx.user.id);
             
             if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+              const limit = getPlanLimit(plan, planExpiresAt);
               throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: 'LIMIT_REACHED',
-                cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+                cause: { type: 'LIMIT_REACHED', currentCount, limit }
               });
             }
           }
@@ -377,10 +379,11 @@ export const userMatchesRouter = router({
           const currentCount = await getTotalAttendanceCount(ctx.user.id);
           
           if (!canCreateAttendance(plan, planExpiresAt, currentCount)) {
+            const limit = getPlanLimit(plan, planExpiresAt);
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'LIMIT_REACHED',
-              cause: { type: 'LIMIT_REACHED', currentCount, limit: FREE_PLAN_LIMIT }
+              cause: { type: 'LIMIT_REACHED', currentCount, limit }
             });
           }
         }

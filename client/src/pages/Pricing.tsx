@@ -70,7 +70,7 @@ export default function Pricing() {
   ];
 
   const plusPlanFeatures: PlanFeature[] = [
-    { text: '記録可能試合: 30件', included: true },
+    { text: '記録可能試合: 無制限', included: true },
     { text: '費用記録（交通費・チケット・飲食・その他）', included: true },
     { text: '勝敗・費用の集計表示', included: true },
     { text: '公式試合データの自動取得', included: true },

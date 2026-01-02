@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   FREE_PLAN_LIMIT,
-  PLUS_PLAN_LIMIT,
   isPro,
   isPlus,
   getEffectivePlan,
   canCreateAttendance,
   calculatePlanStatus,
   getCurrentSeasonYear,
+  getPlanLimit,
 } from './billing';
 
 describe('billing utilities', () => {
@@ -16,8 +16,12 @@ describe('billing utilities', () => {
       expect(FREE_PLAN_LIMIT).toBe(10);
     });
 
-    it('PLUS_PLAN_LIMIT should be 30', () => {
-      expect(PLUS_PLAN_LIMIT).toBe(30);
+    it('Plus plan should have unlimited records', () => {
+      expect(getPlanLimit('plus', null)).toBe(Infinity);
+    });
+
+    it('Pro plan should have unlimited records', () => {
+      expect(getPlanLimit('pro', null)).toBe(Infinity);
     });
   });
 
@@ -112,15 +116,11 @@ describe('billing utilities', () => {
       expect(canCreateAttendance('pro', null, 0)).toBe(true);
     });
 
-    it('should allow plus users under limit (30)', () => {
+    it('should allow plus users to create attendance regardless of count (unlimited)', () => {
       expect(canCreateAttendance('plus', null, 0)).toBe(true);
       expect(canCreateAttendance('plus', null, 15)).toBe(true);
-      expect(canCreateAttendance('plus', null, 29)).toBe(true);
-    });
-
-    it('should block plus users at limit', () => {
-      expect(canCreateAttendance('plus', null, 30)).toBe(false);
-      expect(canCreateAttendance('plus', null, 35)).toBe(false);
+      expect(canCreateAttendance('plus', null, 100)).toBe(true);
+      expect(canCreateAttendance('plus', null, 1000)).toBe(true);
     });
 
     it('should allow free users under limit', () => {
@@ -172,21 +172,21 @@ describe('billing utilities', () => {
       expect(status.canCreate).toBe(false);
     });
 
-    it('should return correct status for plus user', () => {
+    it('should return correct status for plus user (unlimited)', () => {
       const status = calculatePlanStatus('plus', null, 15);
       expect(status.plan).toBe('plus');
       expect(status.effectivePlan).toBe('plus');
       expect(status.isPro).toBe(false);
       expect(status.isPlus).toBe(true);
-      expect(status.limit).toBe(30);
-      expect(status.remaining).toBe(15);
+      expect(status.limit).toBe(Infinity);
+      expect(status.remaining).toBe(Infinity);
       expect(status.canCreate).toBe(true);
     });
 
-    it('should return correct status for plus user at limit', () => {
-      const status = calculatePlanStatus('plus', null, 30);
-      expect(status.remaining).toBe(0);
-      expect(status.canCreate).toBe(false);
+    it('should allow plus user to create even with many records', () => {
+      const status = calculatePlanStatus('plus', null, 1000);
+      expect(status.remaining).toBe(Infinity);
+      expect(status.canCreate).toBe(true);
     });
 
     it('should return correct status for pro user', () => {

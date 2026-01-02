@@ -4,10 +4,10 @@
  * Issue #50: 実効プラン値をAPIで統一（期限切れでもPro表示されない）
  * Issue #55: 3プラン対応（Free/Plus/Pro）
  * Issue #59: シーズン跨ぎでリセットされない
+ * Issue #69: Plus/Pro両方を無制限に統一
  */
 
 export const FREE_PLAN_LIMIT = 10;
-export const PLUS_PLAN_LIMIT = 30;
 
 export type Plan = 'free' | 'plus' | 'pro';
 
@@ -52,8 +52,7 @@ export function getEffectivePlan(plan: Plan, planExpiresAt: Date | null): Plan {
 
 export function getPlanLimit(plan: Plan, planExpiresAt: Date | null): number {
   const effective = getEffectivePlan(plan, planExpiresAt);
-  if (effective === 'pro') return Infinity;
-  if (effective === 'plus') return PLUS_PLAN_LIMIT;
+  if (effective === 'pro' || effective === 'plus') return Infinity;
   return FREE_PLAN_LIMIT;
 }
 

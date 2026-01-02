@@ -194,8 +194,8 @@ export default function MatchDetail() {
             <PlanStatusBadge
               effectivePlan={planStatus.effectivePlan}
               attendanceCount={planStatus.attendanceCount}
-              limit={planStatus.limit === Infinity ? 999 : planStatus.limit}
-              remaining={planStatus.remaining === Infinity ? 999 : planStatus.remaining}
+              limit={planStatus.limit}
+              remaining={planStatus.remaining}
             />
           )}
         </div>

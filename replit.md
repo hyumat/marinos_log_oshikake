@@ -40,6 +40,12 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #69 完了 - Plus/Proを無制限に統一
+  - shared/billing.ts: PLUS_PLAN_LIMIT削除、getPlanLimit()でPlus/Proは両方Infinity
+  - Pricing.tsx, Upgrade.tsx: 「記録可能試合: 無制限」表記に統一
+  - billing.test.ts: Plus制限テストを無制限テストに更新
+  - docs/billing-design.md更新
+
 - 2026-01-02: GitHub Issue #68 完了 - getUserPlan()のPlus対応
   - server/db.ts: 戻り値型を'free'|'pro'からPlan型に修正
   - shared/billing.tsからPlan型をインポート

@@ -30,7 +30,7 @@ export function PlanStatusBadge({
     return (
       <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
         <Sparkles className="w-3 h-3 mr-1" />
-        Plus ({attendanceCount}/{limit})
+        Plus
       </Badge>
     );
   }

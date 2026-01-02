@@ -13,7 +13,7 @@ export default function Upgrade() {
   ];
 
   const plusFeatures = [
-    '記録可能試合: 30件',
+    '記録可能試合: 無制限',
     '試合予定・結果の閲覧',
     '基本的な集計機能',
     'データエクスポート（CSV）',
@@ -147,7 +147,7 @@ export default function Upgrade() {
               </div>
               <h3 className="font-medium mb-1">多くの記録</h3>
               <p className="text-sm text-muted-foreground text-center">
-                Plus: 30件、Pro: 無制限に記録可能。
+                Plus/Pro: 無制限に記録可能。
               </p>
             </div>
             <div className="flex flex-col items-center p-4">
