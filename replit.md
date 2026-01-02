@@ -40,6 +40,17 @@ A Japanese-language web application for tracking Yokohama F. Marinos (J-League) 
 - shadcn/ui コンポーネントベース
 
 ## Recent Changes
+- 2026-01-02: GitHub Issue #55 完了 - Stripe課金実装
+  - server/stripeClient.ts: Replit Connector API経由でStripe認証情報を取得
+  - server/routers/billing.ts: createCheckoutSession, createPortalSession, getPrices, getSubscriptionStatus API
+  - server/webhookHandler.ts: Stripeイベント処理（checkout完了、subscription更新/削除、支払い成功/失敗）
+  - server/_core/index.ts: Webhookルートをexpress.json()の前に登録
+  - server/db.ts: updateUserStripeInfo, getUserByStripeCustomerId, getUserById関数追加
+  - drizzle/schema.ts: users.stripeCustomerId, users.stripeSubscriptionIdカラム追加
+  - client/src/pages/Upgrade.tsx: プラン選択・月/年トグル・Checkout呼び出し対応
+  - scripts/seed-products.ts: StripeにPlus/Pro製品作成スクリプト
+  - 全181テストパス
+
 - 2026-01-02: GitHub Issue #67 完了 - Feature Gate / Entitlements一元管理
   - shared/billing.ts: Entitlements型、getEntitlements()関数を追加
   - PlanStatusにentitlementsフィールドを追加
