@@ -27,7 +27,7 @@ const HOTSPOTS: HeroHotspot[] = [
   },
 ];
 
-function HeroSection({ user }: { user: unknown }) {
+function HeroSection() {
   const [isSp, setIsSp] = useState(false);
 
   useEffect(() => {
@@ -39,32 +39,21 @@ function HeroSection({ user }: { user: unknown }) {
   }, []);
 
   return (
-    <section className="relative w-full">
-      <picture>
-        <source media="(max-width: 768px)" srcSet="/lp/hero-sp.webp" type="image/webp" />
-        <source srcSet="/lp/hero-pc.webp" type="image/webp" />
-        <img
-          src="/lp/lp-hero.png"
-          alt="Oshika hero"
-          className="w-full h-auto"
-          loading="eager"
-          decoding="async"
-        />
-      </picture>
+    <section className="mx-auto max-w-5xl px-4 pt-16 pb-12 md:pt-24 md:pb-16">
+      <div className="relative">
+        <picture>
+          <source media="(max-width: 768px)" srcSet="/lp/hero-sp.webp" type="image/webp" />
+          <source srcSet="/lp/hero-pc.webp" type="image/webp" />
+          <img
+            src="/lp/lp-hero.png"
+            alt="Oshika hero"
+            className="w-full h-auto rounded-3xl shadow-xl"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
 
-      {user ? (
-        <a
-          href="/app"
-          className="absolute inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-md hover:from-blue-700 hover:to-blue-800 transition-all"
-          style={isSp
-            ? { top: "82%", left: "50%", transform: "translateX(-50%)" }
-            : { top: "78%", left: "35%", transform: "translateX(-50%)" }
-          }
-        >
-          ダッシュボードへ
-        </a>
-      ) : (
-        HOTSPOTS.map((hs) => {
+        {HOTSPOTS.map((hs) => {
           const pos = isSp ? hs.sp : hs.pc;
           return (
             <a
@@ -80,8 +69,8 @@ function HeroSection({ user }: { user: unknown }) {
               aria-label={hs.id === "signup" ? "無料で始める" : "使い方を見る"}
             />
           );
-        })
-      )}
+        })}
+      </div>
     </section>
   );
 }
@@ -182,7 +171,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <HeroSection user={user} />
+      <HeroSection />
 
       <section id="pain" className="bg-slate-50/80 py-16 md:py-20">
         <div className="mx-auto max-w-5xl px-4">
