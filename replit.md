@@ -61,6 +61,11 @@ Oshikaは、横浜F・マリノスのサポーター向けに特化した観戦�
 - **Analytics**: Optional integration via `VITE_ANALYTICS_ENDPOINT` and `VITE_ANALYTICS_WEBSITE_ID`
 
 ## Recent Changes
+- 2026-01-05: GitHub Issue #96/97 完了 - Hero CTA導線改善・WebP対応
+  - CTA：「無料で始める」→サインアップ遷移、「使い方を見る」→LP内スクロール
+  - 使い方セクションにid="how-it-works"を付与、ナビリンク更新
+  - Hero画像を<picture>要素でWebP出し分け（hero-pc.webp / hero-sp.webp）
+  - ログイン済みは「ダッシュボードへ」表示
 - 2026-01-05: GitHub Issue #92/93/94/95 完了 - Hero刷新（SurveySparrow風）
   - lp-hero.png: 旧名称「おしかけログ」を含まない新画像に差し替え（文字なしビジュアル）
   - Hero直下に価値カード3枚追加（観戦の記録/費用の記録/試合の確認）
