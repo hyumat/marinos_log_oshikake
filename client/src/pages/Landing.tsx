@@ -39,7 +39,7 @@ function HeroSection() {
   }, []);
 
   return (
-    <section className="mx-auto max-w-5xl px-4 pt-16 pb-12 md:pt-24 md:pb-16">
+    <section className="mx-auto max-w-6xl px-4 pt-6 pb-8 md:pt-8 md:pb-12">
       <div className="relative">
         <picture>
           <source media="(max-width: 768px)" srcSet="/lp/hero-sp.webp" type="image/webp" />
@@ -47,7 +47,8 @@ function HeroSection() {
           <img
             src="/lp/lp-hero.png"
             alt="Oshika hero"
-            className="w-full h-auto rounded-3xl shadow-xl"
+            className="w-full h-auto rounded-2xl md:rounded-3xl"
+            style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12)" }}
             loading="eager"
             decoding="async"
           />
@@ -168,7 +169,7 @@ export default function LandingPage() {
 
       <HeroSection />
 
-      <section id="pain" className="bg-[#EDE9DE] py-16 md:py-20">
+      <section id="pain" className="py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="text-center mb-10">
@@ -209,7 +210,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="solution" className="py-16 md:py-20">
+      <section id="solution" className="bg-[rgba(255,255,255,0.35)] py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="text-center mb-10">
@@ -244,7 +245,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="howto" className="py-16 md:py-20">
+      <section id="howto" className="bg-[rgba(255,255,255,0.35)] py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="text-center mb-10">
@@ -275,7 +276,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="stats" className="py-16 md:py-20">
+      <section id="stats" className="py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="text-center mb-10">
@@ -300,7 +301,7 @@ export default function LandingPage() {
             </FadeInSection>
 
             <FadeInSection delay={100}>
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="rounded-3xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                   <div className="text-sm font-semibold">集計プレビュー</div>
                   <select
@@ -326,7 +327,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="roadmap" className="bg-[#EDE9DE] py-16 md:py-20">
+      <section id="roadmap" className="bg-[rgba(255,255,255,0.35)] py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <div className="grid gap-8 md:grid-cols-2 items-center max-w-4xl mx-auto">
             <div>
@@ -364,7 +365,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="pricing" className="py-16 md:py-20">
+      <section id="pricing" className="py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="text-center mb-12">
@@ -378,7 +379,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             <FadeInSection delay={0}>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-full">
+              <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6 h-full" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-bold">Free</h3>
                   <div className="mt-2">
@@ -413,7 +414,7 @@ export default function LandingPage() {
             </FadeInSection>
 
             <FadeInSection delay={50}>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-full">
+              <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6 h-full" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-bold">Plus</h3>
                   <div className="mt-2">
@@ -448,7 +449,7 @@ export default function LandingPage() {
             </FadeInSection>
 
             <FadeInSection delay={100}>
-              <div className="rounded-2xl border-2 border-blue-600 bg-white p-5 shadow-lg relative h-full">
+              <div className="rounded-2xl border-2 border-blue-600 bg-[rgba(255,255,255,0.95)] p-6 relative h-full" style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.1)" }}>
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">おすすめ</span>
                 </div>
@@ -496,7 +497,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="faq" className="bg-[#EDE9DE] py-16 md:py-20">
+      <section id="faq" className="bg-[rgba(255,255,255,0.35)] py-16 md:py-24">
         <div className="mx-auto max-w-3xl px-4">
           <FadeInSection>
             <div className="text-center mb-10">
@@ -513,7 +514,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => setActiveFaq(open ? null : idx)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:shadow-md transition-shadow"
+                    className="w-full rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-4 text-left transition-shadow" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.05)" }}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -539,7 +540,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-20">
+      <section className="py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4">
           <FadeInSection>
             <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-800 p-8 text-white shadow-xl md:p-12">
@@ -628,7 +629,7 @@ function KpiCard({ title, value }: { title: string; value: string }) {
 
 function PainCard({ icon, text }: { icon: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow h-full">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6 h-full transition-shadow hover:shadow-lg" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
       <div className="text-2xl mb-3">{icon}</div>
       <p className="text-sm text-slate-700 leading-relaxed">{text}</p>
     </div>
@@ -637,7 +638,7 @@ function PainCard({ icon, text }: { icon: string; text: string }) {
 
 function SolutionCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6 h-full transition-all hover:shadow-lg hover:-translate-y-1" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
       <div className="text-3xl mb-4">{icon}</div>
       <h3 className="text-base font-semibold text-slate-900">{title}</h3>
       <p className="mt-2 text-sm text-slate-600 leading-relaxed">{desc}</p>
@@ -647,7 +648,7 @@ function SolutionCard({ icon, title, desc }: { icon: string; title: string; desc
 
 function StepCard({ step, title }: { step: string; title: string }) {
   return (
-    <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow text-center">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6 text-center transition-shadow hover:shadow-lg" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
       <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg mb-4">
         {step}
       </div>
@@ -658,8 +659,8 @@ function StepCard({ step, title }: { step: string; title: string }) {
 
 function StepCardWithImage({ step, title, image }: { step: string; title: string; image: string }) {
   return (
-    <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
-      <div className="aspect-[3/4] rounded-xl overflow-hidden bg-slate-50 mb-4">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-4 transition-all hover:shadow-lg hover:-translate-y-1" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
+      <div className="aspect-[3/4] rounded-xl overflow-hidden bg-[rgba(0,0,0,0.03)] mb-4">
         <img
           src={image}
           alt={`使い方のイメージ（ステップ${step}）`}
@@ -692,7 +693,7 @@ function StatCard({ label, value, unit, hint }: { label: string; value: string; 
 
 function RoadmapItem({ label, text }: { label: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.06)] bg-[rgba(255,255,255,0.9)] p-6" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.06)" }}>
       <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">{label}</div>
       <p className="text-sm text-slate-700">{text}</p>
     </div>
