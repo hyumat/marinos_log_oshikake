@@ -51,7 +51,7 @@ GET /api/export/csv?type=summary&seasonYear=2026
 
 ```typescript
 // Content-Type: text/csv; charset=utf-8
-// Content-Disposition: attachment; filename="oshikake_2026_attendance.csv"
+// Content-Disposition: attachment; filename="oshika_2026_attendance.csv"
 ```
 
 ## エクスポート対象フィールド

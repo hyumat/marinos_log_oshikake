@@ -169,11 +169,11 @@ export default function Support() {
               </div>
               <div className="mt-4">
                 <a
-                  href="mailto:support@oshikake-log.com"
+                  href="mailto:support@oshika.app"
                   className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
                 >
                   <Mail className="h-4 w-4" />
-                  support@oshikake-log.com
+                  support@oshika.app
                 </a>
                 <p className="text-xs text-muted-foreground mt-2">
                   通常1〜3営業日以内に返信いたします

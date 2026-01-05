@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { AccountMenu } from "@/components/AccountMenu";
 import { getLoginUrl, getSignUpUrl } from "@/const";
 
-export default function LandingPageOshikakeLog() {
+export default function LandingPage() {
   const [year, setYear] = useState<number>(2025);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const { user, loading: authLoading } = useAuth();

@@ -65,8 +65,8 @@ interface Draft {
 ### ストレージキー
 
 ```
-oshikake:draft:{matchId}
-oshikake:drafts:queue
+oshika:draft:{matchId}
+oshika:drafts:queue
 ```
 
 ### フック実装例
@@ -76,7 +76,7 @@ function useLocalDraft(matchId: number) {
   const [draft, setDraft] = useState<Draft | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(`oshikake:draft:${matchId}`);
+    const saved = localStorage.getItem(`oshika:draft:${matchId}`);
     if (saved) setDraft(JSON.parse(saved));
   }, [matchId]);
 
@@ -88,12 +88,12 @@ function useLocalDraft(matchId: number) {
       savedAt: new Date().toISOString(),
       syncStatus: 'pending',
     };
-    localStorage.setItem(`oshikake:draft:${matchId}`, JSON.stringify(draft));
+    localStorage.setItem(`oshika:draft:${matchId}`, JSON.stringify(draft));
     setDraft(draft);
   };
 
   const clearDraft = () => {
-    localStorage.removeItem(`oshikake:draft:${matchId}`);
+    localStorage.removeItem(`oshika:draft:${matchId}`);
     setDraft(null);
   };
 
