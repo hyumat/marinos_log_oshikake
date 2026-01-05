@@ -61,6 +61,15 @@ Oshikaは、横浜F・マリノスのサポーター向けに特化した観戦�
 - **Analytics**: Optional integration via `VITE_ANALYTICS_ENDPOINT` and `VITE_ANALYTICS_WEBSITE_ID`
 
 ## Recent Changes
+- 2026-01-05: GitHub Issue #98 完了 - Hero画像全面レイアウト＋ホットスポット
+  - Heroセクションを画像のみの全面表示に変更（左テキスト撤去）
+  - HeroSectionコンポーネント新規作成（ホットスポット付き）
+  - 画像内ボタン領域にクリック可能なホットスポットを配置
+    - 「無料で始める」→ /signup
+    - 「使い方を見る」→ #howto
+  - 使い方セクションのidを「howto」に変更
+  - DEBUG_HOTSPOTSフラグでホットスポット位置調整可能
+  - ログイン済みユーザーは「ダッシュボードへ」ボタンを表示
 - 2026-01-05: GitHub Issue #96/97 完了 - Hero CTA導線改善・WebP対応
   - CTA：「無料で始める」→サインアップ遷移、「使い方を見る」→LP内スクロール
   - 使い方セクションにid="how-it-works"を付与、ナビリンク更新
