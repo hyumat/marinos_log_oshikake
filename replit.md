@@ -67,6 +67,8 @@
   - Landing.tsx/Login.tsx/PublicHeader.tsx: UI表記更新
   - Terms.tsx/Privacy.tsx: 法的ページ更新
   - docs/*.md, README.md, MVP.md: ドキュメント全面更新
+  - Hero画像をテキストなしイラストに差し替え（hero-illustration.png）
+  - HeroSectionをテキストオーバーレイ方式に変更（ブランディングはHTML/CSS）
 - 2026-01-05: GitHub Issue #100/101/102 完了 - LP視覚的改善
   - #100: セクション区切りに交互背景（rgba(255,255,255,0.35)）を追加
   - #101: カードUI調整（背景rgba(255,255,255,0.9)、影0 8px 24px rgba(0,0,0,0.06)、枠線rgba(0,0,0,0.06)）
