@@ -46,7 +46,7 @@ function HeroSection() {
           <source srcSet="/lp/hero-pc.webp" type="image/webp" />
           <img
             src="/lp/lp-hero.png"
-            alt="Oshika hero"
+            alt="オシカケ hero"
             className="w-full h-auto rounded-2xl md:rounded-3xl"
             style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12)" }}
             loading="eager"
@@ -116,11 +116,11 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <img
               src="/logo.png"
-              alt="Oshika"
+              alt="オシカケ"
               className="h-9 w-9 rounded-xl shadow-sm"
             />
             <div className="leading-tight">
-              <div className="text-sm font-bold text-blue-900">Oshika</div>
+              <div className="text-sm font-bold text-blue-900">オシカケ</div>
               <div className="text-[11px] text-slate-500">観戦と費用を、ひとつに。</div>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function LandingPage() {
           <FadeInSection>
             <div className="text-center mb-10">
               <div className="text-xs font-semibold uppercase tracking-wider text-blue-600">解決</div>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">Oshikaでできること</h2>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">オシカケでできること</h2>
             </div>
           </FadeInSection>
 
@@ -566,7 +566,7 @@ export default function LandingPage() {
       <footer className="border-t border-slate-100 py-8">
         <div className="mx-auto max-w-5xl px-4 flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <span className="text-blue-600 font-semibold">Oshika</span>
+            <span className="text-blue-600 font-semibold">オシカケ</span>
             <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500">

@@ -32,10 +32,10 @@ export function PublicHeader({ showBackButton = true, backLabel = "トップに�
           <div className="flex items-center gap-2">
             <img
               src="/logo.png"
-              alt="Oshika"
+              alt="オシカケ"
               className="h-8 w-8 rounded-lg shadow-sm"
             />
-            <span className="text-sm font-bold text-blue-900 hidden sm:inline">Oshika</span>
+            <span className="text-sm font-bold text-blue-900 hidden sm:inline">オシカケ</span>
           </div>
         </div>
 

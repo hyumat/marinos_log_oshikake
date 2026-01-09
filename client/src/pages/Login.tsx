@@ -33,11 +33,11 @@ export default function Login() {
             <div className="flex items-center justify-center gap-2 mb-4">
               <img
                 src="/logo.png"
-                alt="Oshika"
+                alt="オシカケ"
                 className="h-12 w-12 rounded-xl shadow-sm"
               />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Oshika</h1>
+            <h1 className="text-2xl font-bold text-slate-900">オシカケ</h1>
             <p className="mt-2 text-sm text-slate-600">
               観戦と費用を、ひとつに。
             </p>
