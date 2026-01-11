@@ -7,6 +7,8 @@ import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
 import { upsertMatches, getMatches, createSyncLog, getRecentSyncLogs } from '../db';
 import { getSampleMatches } from '../test-data';
 import { scrapeAllMatches, generateMatchKey, normalizeMatchUrl } from '../unified-scraper';
+import { syncFromGoogleSheets, getRecentSyncLogs as getSheetsSyncLogs } from '../sheets-sync';
+import { TRPCError } from '@trpc/server';
 
 // In-memory cache for scraped matches (when DB unavailable)
 let cachedMatches: any[] | null = null;
@@ -193,6 +195,86 @@ export const matchesRouter = router({
         };
       } catch (error) {
         throw new Error('Failed to get match');
+      }
+    }),
+
+  /**
+   * Issue #145: Sync from Google Sheets
+   * 管理者のみ実行可能
+   */
+  syncFromSheets: protectedProcedure
+    .input(
+      z.object({
+        overwriteArchived: z.boolean().default(false).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 管理者のみ実行可能
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ 
+          code: 'FORBIDDEN',
+          message: 'Only admins can sync from Google Sheets'
+        });
+      }
+
+      try {
+        console.log('[Matches Router] Starting Google Sheets sync...');
+        
+        const result = await syncFromGoogleSheets({
+          overwriteArchived: input.overwriteArchived,
+        });
+
+        if (result.success) {
+          return {
+            success: true,
+            message: `同期完了: ${result.newMatches}件新規追加、${result.updatedMatches}件更新、${result.skippedMatches}件スキップ`,
+            data: result,
+          };
+        } else {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `同期失敗: ${result.error}`,
+          });
+        }
+      } catch (error) {
+        console.error('[Matches Router] Sheets sync error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }),
+
+  /**
+   * Issue #145: Get recent sync logs from Google Sheets
+   * 管理者のみ実行可能
+   */
+  getSheetsSyncLogs: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().default(10).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ 
+          code: 'FORBIDDEN',
+          message: 'Only admins can view sync logs'
+        });
+      }
+
+      try {
+        const logs = await getSheetsSyncLogs(input.limit);
+        return {
+          success: true,
+          logs,
+        };
+      } catch (error) {
+        console.error('[Matches Router] Error fetching sync logs:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch sync logs',
+        });
       }
     }),
 });
