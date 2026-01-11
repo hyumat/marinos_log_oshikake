@@ -34,46 +34,119 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
+ * Issue #144: マリノス貯金機能 - 貯金ルール
+ * 
+ * ユーザーが設定した貯金ルールを保存
+ * 例: 「勝利したら500円」「エジガルが得点したら300円」
+ */
+export const savingsRules = mysqlTable("savings_rules", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ユーザーID (users.openIdを参照) */
+  userId: varchar("userId", { length: 64 }).notNull().references(() => users.openId),
+  /** 条件 (例: "勝利", "エジガル得点", "引き分け") */
+  condition: varchar("condition", { length: 256 }).notNull(),
+  /** 貯金額 (円) */
+  amount: int("amount").notNull(),
+  /** 有効/無効 */
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SavingsRule = typeof savingsRules.$inferSelect;
+export type InsertSavingsRule = typeof savingsRules.$inferInsert;
+
+/**
+ * Issue #144: マリノス貯金機能 - 貯金履歴
+ * 
+ * 試合結果に基づいてトリガーされた貯金履歴を記録
+ */
+export const savingsHistory = mysqlTable("savings_history", {
+  id: int("id").autoincrement().primaryKey(),
+  /** ユーザーID (users.openIdを参照) */
+  userId: varchar("userId", { length: 64 }).notNull().references(() => users.openId),
+  /** ルーID (savingsRules.idを参照) */
+  ruleId: int("ruleId").references(() => savingsRules.id),
+  /** 試合ID (matches.idを参照) */
+  matchId: int("matchId").references(() => matches.id),
+  /** 条件 (ルールからコピー) */
+  condition: varchar("condition", { length: 256 }).notNull(),
+  /** 貯金額 (円) */
+  amount: int("amount").notNull(),
+  /** トリガーされた日時 */
+  triggeredAt: timestamp("triggeredAt").defaultNow().notNull(),
+});
+
+export type SavingsHistory = typeof savingsHistory.$inferSelect;
+export type InsertSavingsHistory = typeof savingsHistory.$inferInsert;
+
+/**
  * Official match data from J.League (scraped)
  * This table stores all Marinos matches from the official source
  */
+/**
+ * Issue #146: DBスキーマ統一 - Google Sheets 列定義に合わせた設計
+ * 
+ * Sheets列定義:
+ * - match_id: 固定ID（ユニーク）
+ * - date: 試合日 (YYYY-MM-DD)
+ * - opponent: 対戦相手
+ * - home_score: ホームスコア
+ * - away_score: アウェイスコア
+ * - stadium: スタジアム
+ * - kickoff: キックオフ時刻 (HH:MM)
+ * - competition: 大会名
+ * - ticket_sales_start: チケット販売開始日
+ * - notes: 備考
+ */
 export const matches = mysqlTable("matches", {
   id: int("id").autoincrement().primaryKey(),
-  /** Unique key from official source (e.g., jleague_2025_001) */
-  sourceKey: varchar("sourceKey", { length: 128 }).notNull().unique(),
-  /** Source of data: "jleague" */
-  source: varchar("source", { length: 32 }).default("jleague").notNull(),
-  /** Match date in ISO format (YYYY-MM-DD) */
+  
+  // === Sheets列に対応 ===
+  /** match_id: 固定ID (Sheetsのmatch_id列) */
+  matchId: varchar("matchId", { length: 32 }).notNull().unique(),
+  /** date: 試合日 (YYYY-MM-DD) */
   date: varchar("date", { length: 10 }).notNull(),
-  /** Kickoff time (HH:MM) */
-  kickoff: varchar("kickoff", { length: 5 }),
-  /** Competition name (e.g., "J1", "ACL") */
-  competition: varchar("competition", { length: 128 }),
-  /** Round label (e.g., "第1節", "MD1") */
-  roundLabel: varchar("roundLabel", { length: 64 }),
-  /** Round number */
-  roundNumber: int("roundNumber"),
-  /** Home team name */
-  homeTeam: varchar("homeTeam", { length: 128 }).notNull(),
-  /** Away team name */
-  awayTeam: varchar("awayTeam", { length: 128 }).notNull(),
-  /** Opponent team name (derived from home/away) */
+  /** opponent: 対戦相手 */
   opponent: varchar("opponent", { length: 128 }).notNull(),
-  /** Stadium name */
-  stadium: varchar("stadium", { length: 256 }),
-  /** Whether Marinos is home ("home") or away ("away") */
-  marinosSide: mysqlEnum("marinosSide", ["home", "away"]),
-  /** Home team score */
+  /** home_score: ホームスコア */
   homeScore: int("homeScore"),
-  /** Away team score */
+  /** away_score: アウェイスコア */
   awayScore: int("awayScore"),
-  /** Match status (e.g., "Finished", "Scheduled") */
+  /** stadium: スタジアム */
+  stadium: varchar("stadium", { length: 256 }),
+  /** kickoff: キックオフ時刻 (HH:MM) */
+  kickoff: varchar("kickoff", { length: 5 }),
+  /** competition: 大会名 */
+  competition: varchar("competition", { length: 128 }),
+  /** ticket_sales_start: チケット販売開始日 */
+  ticketSalesStart: varchar("ticketSalesStart", { length: 10 }),
+  /** notes: 備考 */
+  notes: text("notes"),
+  
+  // === メタデータ (内部管理用) ===
+  /** データソース ("sheets", "jleague", "phew") */
+  source: varchar("source", { length: 32 }).default("sheets").notNull(),
+  /** 以前のsourceKeyとの互換性維持 */
+  sourceKey: varchar("sourceKey", { length: 128 }).notNull().unique(),
+  /** 試合ステータス ("Finished", "Scheduled") */
   status: varchar("status", { length: 64 }),
-  /** Whether the match has been played */
-  isResult: int("isResult").default(0).notNull(), // 0 = false, 1 = true
-  /** URL to match details */
+  /** 試合結果があるか (0=未実施, 1=実施済み) */
+  isResult: int("isResult").default(0).notNull(),
+  /** マリノスのホーム/アウェイ */
+  marinosSide: mysqlEnum("marinosSide", ["home", "away"]),
+  /** ホームチーム名 (内部管理用) */
+  homeTeam: varchar("homeTeam", { length: 128 }).notNull(),
+  /** アウェイチーム名 (内部管理用) */
+  awayTeam: varchar("awayTeam", { length: 128 }).notNull(),
+  /** 節ラベル (以前の互換性維持) */
+  roundLabel: varchar("roundLabel", { length: 64 }),
+  /** 節番号 (以前の互換性維持) */
+  roundNumber: int("roundNumber"),
+  /** 試合詳細URL (以前の互換性維持) */
   matchUrl: text("matchUrl"),
-  /** Last updated timestamp */
+  
+  // === タイムスタンプ ===
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
