@@ -1,9 +1,11 @@
 import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
 const templateRoot = path.resolve(import.meta.dirname);
 
 export default defineConfig({
+  plugins: [react()],
   root: templateRoot,
   resolve: {
     alias: {
@@ -13,7 +15,17 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "node",
-    include: ["server/**/*.test.ts", "server/**/*.spec.ts", "shared/**/*.test.ts", "shared/**/*.spec.ts"],
+    environment: "happy-dom",
+    include: [
+      "server/**/*.test.ts",
+      "server/**/*.spec.ts",
+      "shared/**/*.test.ts",
+      "shared/**/*.spec.ts",
+      "client/**/*.test.ts",
+      "client/**/*.test.tsx",
+      "client/**/*.spec.ts",
+      "client/**/*.spec.tsx",
+    ],
+    setupFiles: ["./client/src/test/setup.ts"],
   },
 });

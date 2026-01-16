@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 import { AdBanner } from './AdBanner';
 
 // useAuth のモック
@@ -10,6 +10,9 @@ vi.mock('@/contexts/AuthContext', () => ({
 import { useAuth } from '@/contexts/AuthContext';
 
 describe('AdBanner', () => {
+  afterEach(() => {
+    cleanup();
+  });
   it('Freeプランのユーザーには広告を表示', () => {
     vi.mocked(useAuth).mockReturnValue({
       user: { openId: 'user1', name: 'Test User', plan: 'free' },
@@ -78,9 +81,9 @@ describe('AdBanner', () => {
       isLoading: false,
     } as any);
 
-    render(<AdBanner placement="matchLog" />);
-    
-    const adElement = screen.getByText('広告枠（プレースホルダ）').closest('div');
-    expect(adElement).toHaveAttribute('data-ad-placement', 'matchLog');
+    const { container } = render(<AdBanner placement="matchLog" />);
+
+    const adElement = container.querySelector('[data-ad-placement="matchLog"]');
+    expect(adElement).toBeInTheDocument();
   });
 });
