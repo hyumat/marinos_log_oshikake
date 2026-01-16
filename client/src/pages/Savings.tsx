@@ -1,10 +1,10 @@
 /**
  * Issue #144: マリノス貯金機能 - フロントエンドコンポーネント
- * 
+ *
  * 貯金ルールの管理と貯金履歴の表示
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,34 @@ export default function Savings() {
   const [isAdding, setIsAdding] = useState(false);
 
   const utils = trpc.useUtils();
+
+  // 未処理の貯金をチェック
+  const { data: pendingCheck } = trpc.savings.checkPendingSavings.useQuery(undefined, {
+    // ページロード時に1回だけ実行
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // 新しい貯金が見つかったら通知を表示
+  useEffect(() => {
+    if (pendingCheck && pendingCheck.success && pendingCheck.newSavings.length > 0) {
+      const { totalAmount, processed, newSavings } = pendingCheck;
+
+      // 貯金履歴とトータルを再取得
+      utils.savings.getHistory.invalidate();
+      utils.savings.getTotalSavings.invalidate();
+
+      // 詳細な通知を表示
+      const savingsList = newSavings
+        .map((s) => `${s.condition}: ${formatCurrency(s.amount)}`)
+        .join('\n');
+
+      toast.success(`🎉 新しい貯金が追加されました！`, {
+        description: `${processed}試合を処理し、合計${formatCurrency(totalAmount)}の貯金です！\n${savingsList}`,
+        duration: 5000,
+      });
+    }
+  }, [pendingCheck, utils]);
   
   // データ取得
   const { data: rulesData, isLoading: rulesLoading } = trpc.savings.listRules.useQuery();

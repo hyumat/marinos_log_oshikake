@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
 import { savingsRules, savingsHistory, matches } from '../../drizzle/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 
 export const savingsRouter = router({
   /**
@@ -266,10 +266,14 @@ export const savingsRouter = router({
     }),
 
   /**
-   * 未処理の試合結果をチェックして自動的に貯金をトリガー
+   * 未処理の試合結果に対して自動的に貯金をトリガー
    *
-   * ユーザーがアプリを開いたときや、Statsページを開いたときに自動実行
-   * 既に貯金履歴に記録されている試合はスキップ
+   * 試合結果が確定している（isResult=1）が、まだ貯金履歴に記録されていない試合を検出し、
+   * 該当するルールを適用して貯金履歴を作成する。
+   *
+   * 使用タイミング:
+   * - ユーザーが貯金ページを開いたとき
+   * - 定期的なバックグラウンドジョブ（将来実装）
    */
   checkPendingSavings: protectedProcedure.query(async ({ ctx }) => {
     try {
@@ -281,13 +285,13 @@ export const savingsRouter = router({
         ),
       });
 
-      // ルールがない場合は何もしない
       if (rules.length === 0) {
         return {
           success: true,
           processed: 0,
           totalAmount: 0,
           newSavings: [],
+          message: '有効な貯金ルールがありません',
         };
       }
 
@@ -296,60 +300,86 @@ export const savingsRouter = router({
         where: eq(matches.isResult, 1),
       });
 
-      // 既に貯金履歴に記録されている試合IDを取得
+      if (completedMatches.length === 0) {
+        return {
+          success: true,
+          processed: 0,
+          totalAmount: 0,
+          newSavings: [],
+          message: '結果確定済みの試合がありません',
+        };
+      }
+
+      // 既存の貯金履歴を取得（重複チェック用）
       const existingHistory = await db.query.savingsHistory.findMany({
         where: eq(savingsHistory.userId, ctx.user.openId),
       });
 
+      // 既に処理済みの試合IDのセット
       const processedMatchIds = new Set(
         existingHistory.map((h) => h.matchId).filter((id): id is number => id !== null)
       );
 
-      // 未処理の試合を抽出
+      // 未処理の試合をフィルタリング
       const pendingMatches = completedMatches.filter(
         (match) => match.id && !processedMatchIds.has(match.id)
       );
 
+      if (pendingMatches.length === 0) {
+        return {
+          success: true,
+          processed: 0,
+          totalAmount: 0,
+          newSavings: [],
+          message: '新しい試合結果はありません',
+        };
+      }
+
       const newSavings: Array<{
         matchId: number;
-        matchDate: string;
-        opponent: string;
-        result: string;
+        condition: string;
         amount: number;
-        conditions: string[];
+        result: string;
       }> = [];
 
-      // 各未処理試合に対して貯金をトリガー
+      // 各試合に対してルールを適用
       for (const match of pendingMatches) {
-        if (match.homeScore === null || match.awayScore === null) continue;
-        if (!match.id) continue;
+        if (!match.id || match.homeScore === null || match.awayScore === null) {
+          continue;
+        }
 
         // 試合結果を判定
         let result: '勝利' | '引き分け' | '敗北';
-        const marinosSide = match.marinosSide || 'home';
-        const marinosScore = marinosSide === 'home' ? match.homeScore : match.awayScore;
-        const opponentScore = marinosSide === 'home' ? match.awayScore : match.homeScore;
+
+        // marinosSide: 'home' or 'away'
+        const marinosScore = match.marinosSide === 'home' ? match.homeScore : match.awayScore;
+        const opponentScore = match.marinosSide === 'home' ? match.awayScore : match.homeScore;
 
         if (marinosScore > opponentScore) {
           result = '勝利';
-        } else if (marinosScore < opponentScore) {
-          result = '敗北';
-        } else {
+        } else if (marinosScore === opponentScore) {
           result = '引き分け';
+        } else {
+          result = '敗北';
         }
 
-        const triggeredRules = [];
-
-        // ルールをチェック
-        for (const rule of rules) {
+        // 該当するルールを検索
+        const matchedRules = rules.filter((rule) => {
+          // 試合結果のチェック
           if (rule.condition === result) {
-            triggeredRules.push(rule);
+            return true;
           }
-          // TODO: 得点者のチェック（将来実装）
-        }
+
+          // TODO: 得点者ベースのルール（将来実装）
+          // if (rule.condition.includes('得点')) {
+          //   // 得点者情報が利用可能になったら実装
+          // }
+
+          return false;
+        });
 
         // 貯金履歴に追加
-        for (const rule of triggeredRules) {
+        for (const rule of matchedRules) {
           await db.insert(savingsHistory).values({
             userId: ctx.user.openId,
             ruleId: rule.id,
@@ -357,17 +387,12 @@ export const savingsRouter = router({
             condition: rule.condition,
             amount: rule.amount,
           });
-        }
 
-        if (triggeredRules.length > 0) {
-          const matchAmount = triggeredRules.reduce((sum, r) => sum + r.amount, 0);
           newSavings.push({
             matchId: match.id,
-            matchDate: match.date,
-            opponent: match.opponent || '',
+            condition: rule.condition,
+            amount: rule.amount,
             result,
-            amount: matchAmount,
-            conditions: triggeredRules.map((r) => r.condition),
           });
         }
       }
@@ -376,16 +401,15 @@ export const savingsRouter = router({
 
       return {
         success: true,
-        processed: newSavings.length,
+        processed: pendingMatches.length,
         totalAmount,
         newSavings,
-        message:
-          newSavings.length > 0
-            ? `${newSavings.length}件の試合で ${totalAmount}円の貯金が追加されました！`
-            : '新しい貯金はありませんでした',
+        message: newSavings.length > 0
+          ? `${pendingMatches.length}試合を処理し、${totalAmount}円の貯金が追加されました！`
+          : `${pendingMatches.length}試合を処理しましたが、該当するルールはありませんでした`,
       };
     } catch (error) {
-      console.error('[Savings Router] checkPendingSavings error:', error);
+      console.error('checkPendingSavings error:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: '貯金チェック中にエラーが発生しました',

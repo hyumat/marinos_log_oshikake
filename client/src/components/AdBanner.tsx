@@ -1,14 +1,14 @@
 /**
  * AdBanner - 広告バナーコンポーネント
- * 
+ *
  * Freeプランのユーザーにのみ表示される広告枠
  * Plus/Proでは何も表示しない（DOMごと出さない）
- * 
+ *
  * MVPではプレースホルダを表示し、後から広告プロバイダを差し替え可能
  */
 
 import { useAuth } from '@/contexts/AuthContext';
-import { canShowAds } from '@/shared/planHelpers';
+import { canShowAds } from '@shared/planHelpers';
 
 export type AdPlacement = 'matchLog' | 'stats' | 'home';
 
@@ -20,7 +20,7 @@ interface AdBannerProps {
    * - home: ホームページ
    */
   placement: AdPlacement;
-  
+
   /**
    * カスタムクラス名
    */
