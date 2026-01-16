@@ -15,16 +15,39 @@ import { Settings as SettingsIcon, Save, Home, Palette, Database, Wallet } from 
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useEffect } from "react";
 
 export default function Settings() {
   const { user } = useAuth();
-  const [homeTeam, setHomeTeam] = useState<string>("yokohama-f-marinos");
-  const [theme, setTheme] = useState<string>("light");
-  const [seasonBudget, setSeasonBudget] = useState<string>("");
-  const [matchBudget, setMatchBudget] = useState<string>("");
+  const { theme: currentTheme, setTheme } = useTheme();
+  const [homeTeam, setHomeTeam] = useState<string>(() => {
+    return localStorage.getItem("settings.homeTeam") || "yokohama-f-marinos";
+  });
+  const [theme, setLocalTheme] = useState<string>(currentTheme);
+  const [seasonBudget, setSeasonBudget] = useState<string>(() => {
+    return localStorage.getItem("settings.seasonBudget") || "";
+  });
+  const [matchBudget, setMatchBudget] = useState<string>(() => {
+    return localStorage.getItem("settings.matchBudget") || "";
+  });
+
+  // Sync theme with ThemeContext
+  useEffect(() => {
+    setLocalTheme(currentTheme);
+  }, [currentTheme]);
 
   const handleSave = () => {
-    // TODO: Implement tRPC mutation to save settings
+    // Save to localStorage
+    localStorage.setItem("settings.homeTeam", homeTeam);
+    localStorage.setItem("settings.seasonBudget", seasonBudget);
+    localStorage.setItem("settings.matchBudget", matchBudget);
+
+    // Apply theme change
+    if (setTheme && theme !== currentTheme) {
+      setTheme(theme as "light" | "dark");
+    }
+
     toast.success("設定を保存しました");
   };
 
@@ -112,16 +135,18 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="theme">テーマ</Label>
-                <Select value={theme} onValueChange={setTheme}>
+                <Select value={theme} onValueChange={setLocalTheme}>
                   <SelectTrigger id="theme">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="light">ライト</SelectItem>
                     <SelectItem value="dark">ダーク</SelectItem>
-                    <SelectItem value="tokyo-night">Tokyo Night（準備中）</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-muted-foreground">
+                  保存するとテーマが適用されます
+                </p>
               </div>
             </CardContent>
           </Card>
