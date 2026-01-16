@@ -8,6 +8,7 @@
  */
 
 import { useAuth } from '@/contexts/AuthContext';
+import { canShowAds } from '@/shared/planHelpers';
 
 export type AdPlacement = 'matchLog' | 'stats' | 'home';
 
@@ -24,20 +25,6 @@ interface AdBannerProps {
    * カスタムクラス名
    */
   className?: string;
-}
-
-/**
- * ユーザーのプランを判定（簡易版）
- * 
- * TODO: server/lib/planHelpers.tsと統合
- */
-function canShowAds(user: any): boolean {
-  if (!user) return true; // 未ログインはFreeとして扱う
-  
-  // 現状はすべてのユーザーをFreeとして扱う
-  // 将来的にはentitlements/planから判定
-  const plan = user.plan || 'free';
-  return plan === 'free';
 }
 
 export function AdBanner({ placement, className = '' }: AdBannerProps) {
