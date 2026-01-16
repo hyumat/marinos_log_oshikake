@@ -4,14 +4,24 @@
 
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
-import { upsertMatches, getMatches, createSyncLog, getRecentSyncLogs } from '../db';
+import { upsertMatches, getMatches, getMatchById, createSyncLog, getRecentSyncLogs } from '../db';
 import { getSampleMatches } from '../test-data';
 import { scrapeAllMatches, generateMatchKey, normalizeMatchUrl } from '../unified-scraper';
 import { syncFromGoogleSheets, getRecentSyncLogs as getSheetsSyncLogs } from '../sheets-sync';
 import { TRPCError } from '@trpc/server';
+import type { Match } from '../../drizzle/schema';
+
+// Cached match type (partial Match with required fields from scraper)
+type CachedMatch = Partial<Match> & {
+  id: number;
+  sourceKey: string;
+  date: string;
+  kickoff: string;
+  opponent: string;
+};
 
 // In-memory cache for scraped matches (when DB unavailable)
-let cachedMatches: any[] | null = null;
+let cachedMatches: CachedMatch[] | null = null;
 
 
 
@@ -188,13 +198,53 @@ export const matchesRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       try {
-        // TODO: Implement when we have the database query
+        // First try to get from database
+        const dbMatch = await getMatchById(input.id);
+
+        if (dbMatch) {
+          return {
+            success: true,
+            match: dbMatch,
+          };
+        }
+
+        // Check in-memory cache (populated by fetchOfficial)
+        if (cachedMatches && cachedMatches.length > 0) {
+          const cachedMatch = cachedMatches.find((m) => m.id === input.id);
+          if (cachedMatch) {
+            console.log(`[Matches Router] Returning cached match ${input.id}`);
+            return {
+              success: true,
+              match: cachedMatch,
+            };
+          }
+        }
+
+        // Check test data as fallback
+        const testMatches = getSampleMatches();
+        const testMatch = testMatches.find((m) => m.id === input.id);
+
+        if (testMatch) {
+          console.log(`[Matches Router] Returning test match ${input.id}`);
+          return {
+            success: true,
+            match: testMatch,
+          };
+        }
+
+        // Match not found
+        console.log(`[Matches Router] Match ${input.id} not found`);
         return {
           success: false,
-          message: 'Not implemented yet',
+          message: 'Match not found',
         };
+
       } catch (error) {
-        throw new Error('Failed to get match');
+        console.error('[Matches Router] Error getting match by ID:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to get match',
+        });
       }
     }),
 
