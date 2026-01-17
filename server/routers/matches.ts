@@ -8,6 +8,7 @@ import { upsertMatches, getMatches, getMatchById, createSyncLog, getRecentSyncLo
 import { getSampleMatches } from '../test-data';
 import { scrapeAllMatches, generateMatchKey, normalizeMatchUrl } from '../unified-scraper';
 import { syncFromGoogleSheets, getRecentSyncLogs as getSheetsSyncLogs } from '../sheets-sync';
+import { getScheduler } from '../scheduler';
 import { TRPCError } from '@trpc/server';
 import type { Match } from '../../drizzle/schema';
 
@@ -324,6 +325,145 @@ export const matchesRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch sync logs',
+        });
+      }
+    }),
+
+  /**
+   * Issue #145: Get scheduler status
+   * 管理者のみ実行可能
+   */
+  getSchedulerStatus: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'admin') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Only admins can view scheduler status'
+      });
+    }
+
+    const scheduler = getScheduler();
+    if (!scheduler) {
+      return {
+        enabled: false,
+        message: 'Scheduler not initialized',
+      };
+    }
+
+    const status = scheduler.getStatus();
+    const config = scheduler.getConfig();
+
+    return {
+      enabled: config.enabled,
+      status,
+      config: {
+        syncIntervalMs: config.syncIntervalMs,
+        syncOnStartup: config.syncOnStartup,
+      },
+    };
+  }),
+
+  /**
+   * Issue #145: Manually trigger scheduler sync
+   * 管理者のみ実行可能
+   * スケジューラー経由で同期を実行（次回実行時刻はリセットされない）
+   */
+  triggerSchedulerSync: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== 'admin') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Only admins can trigger scheduler sync'
+      });
+    }
+
+    const scheduler = getScheduler();
+    if (!scheduler) {
+      throw new TRPCError({
+        code: 'PRECONDITION_FAILED',
+        message: 'Scheduler not initialized',
+      });
+    }
+
+    try {
+      await scheduler.triggerManualSync();
+      return {
+        success: true,
+        message: '同期を開始しました',
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error instanceof Error ? error.message : 'Sync failed',
+      });
+    }
+  }),
+
+  /**
+   * Manually create a match entry (Issue #122-3)
+   * For matches not available in official data
+   */
+  createManual: protectedProcedure
+    .input(
+      z.object({
+        date: z.string(), // YYYY-MM-DD
+        kickoff: z.string().optional(),
+        opponent: z.string(),
+        marinosSide: z.enum(['home', 'away']),
+        stadium: z.string().optional(),
+        competition: z.string().optional(),
+        homeScore: z.number().optional(),
+        awayScore: z.number().optional(),
+        isResult: z.number(), // 0=未実施, 1=実施済み
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        // Generate unique matchId and sourceKey
+        const dateStr = input.date.replace(/-/g, '');
+        const opponentShort = input.opponent.substring(0, 8);
+        const matchId = `manual_${dateStr}_${opponentShort}`;
+        const sourceKey = `manual:${input.date}:${input.opponent}:${input.marinosSide}`;
+
+        // Determine home/away teams
+        const homeTeam = input.marinosSide === 'home' ? '横浜F・マリノス' : input.opponent;
+        const awayTeam = input.marinosSide === 'away' ? '横浜F・マリノス' : input.opponent;
+
+        const newMatch = {
+          matchId,
+          sourceKey,
+          date: input.date,
+          kickoff: input.kickoff || null,
+          opponent: input.opponent,
+          marinosSide: input.marinosSide,
+          stadium: input.stadium || null,
+          competition: input.competition || 'その他',
+          homeScore: input.homeScore ?? null,
+          awayScore: input.awayScore ?? null,
+          isResult: input.isResult,
+          notes: input.notes || null,
+          homeTeam,
+          awayTeam,
+          source: 'manual',
+          matchUrl: null,
+          roundLabel: null,
+          roundNumber: null,
+          status: input.isResult ? 'Finished' : 'Scheduled',
+        };
+
+        // Save to database
+        await upsertMatches([newMatch]);
+
+        console.log(`[Matches Router] Created manual match: ${matchId}`);
+
+        return {
+          success: true,
+          matchId,
+        };
+      } catch (error) {
+        console.error('[Matches Router] Error creating manual match:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to create match',
         });
       }
     }),

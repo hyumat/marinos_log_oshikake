@@ -40,6 +40,7 @@ function Router() {
       <Route path={"/app"}>{() => <ProtectedRoute component={Home} />}</Route>
       <Route path={"/matches"}>{() => <ProtectedRoute component={Matches} />}</Route>
       <Route path={"/matches/:id"}>{() => <ProtectedRoute component={MatchDetail} />}</Route>
+      <Route path={"/expenses"}>{() => <ProtectedRoute component={Stats} />}</Route>
       <Route path={"/stats"}>{() => <ProtectedRoute component={Stats} />}</Route>
       <Route path={"/savings"}>{() => <ProtectedRoute component={Savings} />}</Route>
       <Route path={"/settings"}>{() => <ProtectedRoute component={Settings} />}</Route>
@@ -68,7 +69,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="light"
-        // switchable
+        switchable={true}
       >
         <TooltipProvider>
           <Toaster />

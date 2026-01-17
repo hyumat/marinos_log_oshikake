@@ -56,6 +56,7 @@ export default function Matches() {
     watchedOnly: false,
   });
   const [attendanceStatus, setAttendanceStatus] = useState<Record<string, AttendanceStatus>>({});
+  const [showAddMatchDialog, setShowAddMatchDialog] = useState(false);
 
   const getAttendanceStatus = (matchId: number | string): AttendanceStatus => {
     return attendanceStatus[String(matchId)] || 'undecided';
@@ -278,7 +279,7 @@ export default function Matches() {
               最新に更新
             </Button>
             <Button
-              onClick={() => {}}
+              onClick={() => setShowAddMatchDialog(true)}
               size="sm"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -756,6 +757,13 @@ export default function Matches() {
             </Card>
           </div>
         )}
+
+        {/* 試合追加モーダル */}
+        <AddMatchDialog
+          open={showAddMatchDialog}
+          onOpenChange={setShowAddMatchDialog}
+          onSuccess={() => refetch()}
+        />
       </div>
     </div>
   );
