@@ -17,7 +17,7 @@ type CachedMatch = Partial<Match> & {
   id: number;
   sourceKey: string;
   date: string;
-  kickoff: string;
+  kickoff?: string;
   opponent: string;
 };
 

@@ -107,13 +107,13 @@ export const savingsRouter = router({
       
       // 試合情報を取得
       const historyWithMatches = await Promise.all(
-        history.map(async (item) => {
+        history.map(async (item: typeof savingsHistory.$inferSelect) => {
           if (!item.matchId) return { ...item, match: null };
-          
+
           const match = await db.query.matches.findFirst({
             where: eq(matches.id, item.matchId),
           });
-          
+
           return { ...item, match };
         })
       );
@@ -128,9 +128,9 @@ export const savingsRouter = router({
     const history = await db.query.savingsHistory.findMany({
       where: eq(savingsHistory.userId, ctx.user.openId),
     });
-    
-    const total = history.reduce((sum, item) => sum + item.amount, 0);
-    
+
+    const total = history.reduce((sum: number, item: typeof savingsHistory.$inferSelect) => sum + item.amount, 0);
+
     return { total };
   }),
 
@@ -317,12 +317,12 @@ export const savingsRouter = router({
 
       // 既に処理済みの試合IDのセット
       const processedMatchIds = new Set(
-        existingHistory.map((h) => h.matchId).filter((id): id is number => id !== null)
+        existingHistory.map((h: typeof savingsHistory.$inferSelect) => h.matchId).filter((id: number | null): id is number => id !== null)
       );
 
       // 未処理の試合をフィルタリング
       const pendingMatches = completedMatches.filter(
-        (match) => match.id && !processedMatchIds.has(match.id)
+        (match: typeof matches.$inferSelect) => match.id && !processedMatchIds.has(match.id)
       );
 
       if (pendingMatches.length === 0) {
@@ -364,7 +364,7 @@ export const savingsRouter = router({
         }
 
         // 該当するルールを検索
-        const matchedRules = rules.filter((rule) => {
+        const matchedRules = rules.filter((rule: typeof savingsRules.$inferSelect) => {
           // 試合結果のチェック
           if (rule.condition === result) {
             return true;
