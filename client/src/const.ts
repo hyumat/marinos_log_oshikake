@@ -1,29 +1,9 @@
+/**
+ * Constants
+ * Issue #105: Manus OAuth依存削除
+ */
+
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-const buildAuthUrl = (type: "signIn" | "signUp") => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  
-  if (!oauthPortalUrl || !appId) {
-    return "/login";
-  }
-  
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
-
-  try {
-    const url = new URL(`${oauthPortalUrl}/app-auth`);
-    url.searchParams.set("appId", appId);
-    url.searchParams.set("redirectUri", redirectUri);
-    url.searchParams.set("state", state);
-    url.searchParams.set("type", type);
-
-    return url.toString();
-  } catch {
-    return "/login";
-  }
-};
-
-export const getLoginUrl = () => buildAuthUrl("signIn");
-
-export const getSignUpUrl = () => buildAuthUrl("signUp");
+// Manus OAuth関連のコードを削除
+// getLoginUrl(), getSignUpUrl()は削除され、直接 "/login" へのリンクに変更

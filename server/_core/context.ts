@@ -1,6 +1,8 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import { sdk } from "./sdk";
+import { sessionManager } from "./session";
+import { COOKIE_NAME } from "@shared/const";
+import { parse as parseCookieHeader } from 'cookie';
 import { ENV } from "./env";
 import * as db from "../db";
 
@@ -57,11 +59,32 @@ export async function createContext(
   let user: User | null = null;
 
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    // Cookie からセッショントークン取得
+    const cookies = parseCookieHeader(opts.req.headers.cookie || '');
+    const sessionToken = cookies[COOKIE_NAME];
+
+    if (sessionToken) {
+      // セッション検証
+      const session = await sessionManager.verifySession(sessionToken);
+
+      if (session) {
+        // ユーザー情報取得
+        user = await db.getUserByOpenId(session.userId);
+
+        if (user) {
+          // 最終ログイン時刻更新
+          await db.upsertUser({
+            openId: user.openId,
+            lastSignedIn: new Date(),
+          });
+        }
+      }
+    }
   } catch (error) {
-    // Authentication failed - check if we should use dev fallback
+    console.error('[Auth] Authentication failed:', error);
+
+    // 開発モードフォールバック
     if (!ENV.isProduction) {
-      // Development mode: auto-login as dev user for testing
       try {
         user = await getOrCreateDevUser();
         console.log("[Auth] Using dev fallback user:", user.name);
@@ -69,11 +92,6 @@ export async function createContext(
         console.error("[Auth] Failed to create dev user:", devError);
         user = null;
       }
-    }
-    
-    if (!user) {
-      // Authentication is optional for public procedures.
-      user = null;
     }
   }
 

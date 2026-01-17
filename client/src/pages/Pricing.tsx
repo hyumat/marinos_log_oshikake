@@ -90,7 +90,7 @@ export default function Pricing() {
               </ul>
             </CardContent>
             <CardFooter>
-              <a href={getSignUpUrl()} className="w-full">
+              <a href={"/login"} className="w-full">
                 <Button className="w-full" variant="outline">
                   無料で登録
                 </Button>
