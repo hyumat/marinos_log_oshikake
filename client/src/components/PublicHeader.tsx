@@ -1,6 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { AccountMenu } from "@/components/AccountMenu";
-import { getLoginUrl, getSignUpUrl } from "@/const";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -55,13 +54,13 @@ export function PublicHeader({ showBackButton = true, backLabel = "トップに�
           ) : (
             <>
               <a
-                href={getLoginUrl()}
+                href={/login}
                 className="text-sm font-medium text-slate-600 hover:text-blue-700 transition-colors"
               >
                 ログイン
               </a>
               <a
-                href={getSignUpUrl()}
+                href={/login}
                 className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-800 transition-all"
               >
                 無料で登録

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { AccountMenu } from "@/components/AccountMenu";
-import { getLoginUrl, getSignUpUrl } from "@/const";
 
 function HeroSection({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
@@ -44,7 +43,7 @@ function HeroSection({ isLoggedIn }: { isLoggedIn: boolean }) {
               ) : (
                 <>
                   <a
-                    href={getSignUpUrl()}
+                    href={"/login"}
                     className="inline-flex items-center justify-center px-6 py-3 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors"
                   >
                     無料で始める
@@ -180,13 +179,13 @@ export default function LandingPage() {
             ) : (
               <>
                 <a
-                  href={getLoginUrl()}
+                  href={"/login"}
                   className="text-sm font-medium text-slate-600 hover:text-blue-700 transition-colors"
                 >
                   ログイン
                 </a>
                 <a
-                  href={getSignUpUrl()}
+                  href={"/login"}
                   className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-blue-700 hover:to-blue-800 transition-all"
                 >
                   無料で登録
@@ -434,7 +433,7 @@ export default function LandingPage() {
                 <p className="mt-3 text-xs text-slate-400">※「記録可能試合」は、観戦記録（観戦済み）として保存できる件数です。</p>
                 <div className="mt-4">
                   <a
-                    href={user ? "/app" : getSignUpUrl()}
+                    href={user ? "/app" : "/login"}
                     className="block w-full rounded-xl border border-slate-200 bg-white py-2 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
                   >
                     {user ? "ダッシュボードへ" : "無料で登録"}
@@ -581,7 +580,7 @@ export default function LandingPage() {
                 </p>
                 <div className="mt-8">
                   <a
-                    href={user ? "/app" : getSignUpUrl()}
+                    href={user ? "/app" : "/login"}
                     className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-blue-800 shadow-md hover:bg-slate-50 transition-all"
                   >
                     {user ? "ダッシュボードへ" : "無料で登録して始める"}

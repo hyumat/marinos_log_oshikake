@@ -77,7 +77,7 @@ export default function Home() {
 
           {/* CTA */}
           <div className="text-center">
-            <a href={getLoginUrl()}>
+            <a href={"/login"}>
               <Button size="lg" className="text-lg px-8 py-6">
                 ログインして始める
               </Button>
