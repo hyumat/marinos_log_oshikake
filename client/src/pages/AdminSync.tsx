@@ -293,7 +293,7 @@ export default function AdminSync() {
               </div>
             ) : syncLogs?.logs && syncLogs.logs.length > 0 ? (
               <div className="space-y-2">
-                {syncLogs.logs.map((log) => (
+                {syncLogs.logs.map((log: any) => (
                   <div
                     key={log.id}
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"

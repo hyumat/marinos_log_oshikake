@@ -140,6 +140,7 @@ export async function upsertMatches(matchesData: any[]) {
     const results = [];
     for (const match of matchesData) {
       const result = await db.insert(matchesTable).values({
+        matchId: match.matchId || match.sourceKey, // Use matchId if available, otherwise sourceKey
         sourceKey: match.sourceKey,
         source: 'jleague',
         date: match.date,

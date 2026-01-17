@@ -227,7 +227,7 @@ export default function Savings() {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {rules.map((rule) => (
+                  {rules.map((rule: any) => (
                     <div
                       key={rule.id}
                       className="flex items-center justify-between p-3 border rounded-lg"
@@ -276,7 +276,7 @@ export default function Savings() {
                 </p>
               ) : (
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                  {history.map((item) => (
+                  {history.map((item: any) => (
                     <div
                       key={item.id}
                       className="flex items-center justify-between p-3 border rounded-lg"
