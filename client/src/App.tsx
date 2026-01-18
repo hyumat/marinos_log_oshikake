@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import OnboardingTeam from "./pages/OnboardingTeam";
 import Account from "./pages/Account";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
@@ -49,6 +50,9 @@ function Router() {
       <Route path={"/"} component={Landing} />
       <Route path={"/login"} component={Login} />
       <Route path={"/signup"} component={Signup} />
+
+      {/* Issue #107: Onboarding flow */}
+      <Route path={"/onboarding/team"}>{() => <ProtectedRoute component={OnboardingTeam} />}</Route>
 
       {/* Protected App Routes */}
       <Route path={"/app"}>{() => <ProtectedRoute component={Home} />}</Route>
